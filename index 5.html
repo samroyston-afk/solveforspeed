@@ -1,0 +1,2309 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Solve for Speed</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&family=Racing+Sans+One&display=swap">
+<style>
+/* Layout: a night-time paddock. The garage spotlight shows your vehicle, a pit-board list picks the track, and a race is a side-on TV camera above a carbon dashboard with the answer keypad. One deliberate dark look. */
+:root {
+  color-scheme: dark;
+  --asphalt: #101219;
+  --asphalt-2: #181b25;
+  --asphalt-3: #232735;
+  --line: #313849;
+  --line-hi: #4b5370;
+  --yellow: #ffd23f;
+  --yellow-deep: #d39b00;
+  --yellow-soft: rgba(255, 210, 63, 0.18);
+  --red: #ff3b3b;
+  --red-soft: rgba(255, 59, 59, 0.22);
+  --cyan: #28e0ff;
+  --cyan-soft: rgba(40, 224, 255, 0.22);
+  --lime: #8dff5a;
+  --chalk: #f3f5fa;
+  --mist: #a9b0c3;
+  --gold: #ffcf40;
+  --silver: #d5dbe6;
+  --bronze: #d9894a;
+  --key: #e6e9f0;
+  --key-ink: #161922;
+  --key-edge: #8b92a4;
+  --lcd: #0a0c12;
+  --scrim: rgba(5, 6, 10, 0.8);
+  --shadow: rgba(0, 0, 0, 0.5);
+  --display: 'Racing Sans One', 'Arial Black', Impact, sans-serif;
+  --body: 'Atkinson Hyperlegible', Verdana, 'Segoe UI', system-ui, sans-serif;
+  --key-h: clamp(42px, 6.8vh, 58px);
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { height: 100%; -webkit-text-size-adjust: 100%; }
+body { min-height: 100%; margin: 0; background: radial-gradient(120% 60% at 50% -15%, #262c44, var(--asphalt) 60%) no-repeat, var(--asphalt); color: var(--chalk); font-family: var(--body); font-size: 16px; line-height: 1.45; -webkit-tap-highlight-color: transparent; }
+html.playing, html.playing body { height: 100%; overflow: hidden; overscroll-behavior: none; }
+button { font: inherit; color: inherit; cursor: pointer; }
+button:disabled { cursor: default; }
+:focus-visible { outline: 3px solid var(--cyan); outline-offset: 2px; }
+h1, h2, h3, p { margin: 0; }
+#app { position: relative; min-height: 100%; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+html.playing #app { height: 100%; }
+.screen { max-width: 600px; margin: 0 auto; }
+.icon-btn { width: 44px; height: 44px; flex: none; padding: 0; border-radius: 12px; border: 1.5px solid var(--line-hi); background: var(--asphalt-2); display: grid; place-items: center; }
+.icon-btn svg { width: 22px; height: 22px; }
+.btn { min-height: 52px; padding: 12px 18px; border-radius: 12px; border: 2px solid var(--line-hi); background: linear-gradient(180deg, var(--asphalt-3), var(--asphalt-2)); font-weight: 700; font-size: 17px; line-height: 1.15; display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-align: center; }
+.btn.primary { background: linear-gradient(180deg, #ffe27a, var(--yellow) 55%, var(--yellow-deep)); border-color: var(--yellow-deep); color: var(--key-ink); box-shadow: 0 0 26px var(--yellow-soft); }
+.btn.ghost { background: transparent; }
+.btn:disabled { opacity: 0.45; }
+.btn:active:not(:disabled) { transform: translateY(2px); }
+.btn svg { width: 22px; height: 22px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; font-size: 12.5px; font-weight: 700; border: 1.5px solid var(--line-hi); background: rgba(16, 18, 25, 0.7); white-space: nowrap; }
+.coin { width: 18px; height: 18px; vertical-align: -3px; }
+.math { font-weight: 700; font-variant-numeric: lining-nums; }
+.v { font-style: italic; font-weight: 700; color: var(--cyan); padding: 0 0.03em; }
+.box { display: inline-block; width: 1.05em; height: 1.05em; vertical-align: -0.16em; border: 0.08em solid var(--yellow); border-radius: 0.16em; background: var(--yellow-soft); }
+.frac { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; font-size: 0.78em; margin: 0 0.12em; line-height: 1.12; }
+.frac .ft { border-bottom: 0.08em solid currentColor; padding: 0 0.18em 0.04em; }
+.frac .fb { padding: 0.04em 0.18em 0; }
+sup { font-size: 0.6em; line-height: 0; vertical-align: 0.75em; }
+.ml { display: block; }
+.medal { width: 22px; height: 22px; flex: none; }
+
+/* ===== paddock ===== */
+.home { padding-block: 14px 48px; display: flex; flex-direction: column; gap: 18px; }
+.topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.logo { font: 400 clamp(26px, 8vw, 34px)/0.95 var(--display); letter-spacing: 0.01em; color: var(--chalk); transform: skewX(-6deg); text-shadow: 0 3px 0 #000; }
+.logo b { font-weight: 400; color: var(--yellow); }
+.logo i { font-style: normal; color: var(--cyan); }
+.showroom { position: relative; border-radius: 18px; overflow: hidden; border: 1.5px solid var(--line); padding: 14px 14px 12px; display: grid; gap: 6px;
+  background: radial-gradient(60% 70% at 50% 18%, rgba(255,255,255,.16), transparent 70%), repeating-linear-gradient(-55deg, rgba(255,210,63,.05) 0 14px, transparent 14px 28px), linear-gradient(180deg, #1d2233, #111420); }
+.showroom::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 10px; background: repeating-linear-gradient(90deg, #f3f5fa 0 10px, #101219 10px 20px); opacity: .85; }
+.sr-car { width: 100%; max-width: 420px; margin: 0 auto; aspect-ratio: 2 / 1; }
+.sr-car svg { width: 100%; height: 100%; display: block; filter: drop-shadow(0 10px 14px rgba(0,0,0,.45)); }
+.sr-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; padding-bottom: 10px; }
+.sr-name { font: 400 clamp(24px, 7vw, 32px)/1 var(--display); overflow-wrap: anywhere; }
+.sr-sub { font-size: 14px; color: var(--mist); }
+.sr-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.rank-chip { border-color: var(--yellow); color: var(--yellow); }
+.wallet { display: grid; grid-template-columns: repeat(3, 1fr); border-block: 1.5px solid var(--line); }
+.wallet > div { padding: 12px 10px; display: grid; gap: 2px; min-width: 0; }
+.wallet > div + div { border-left: 1.5px solid var(--line); }
+.wallet b { font-size: 21px; line-height: 1.1; font-variant-numeric: tabular-nums; display: flex; align-items: center; gap: 6px; }
+.wallet span { font-size: 11.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--mist); }
+.meter { height: 6px; border-radius: 3px; background: var(--asphalt-3); overflow: hidden; margin-top: 4px; }
+.meter > i { display: block; height: 100%; background: var(--yellow); border-radius: inherit; }
+.modes { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.mode { min-height: 64px; border-radius: 14px; border: 2px solid var(--line-hi); background: var(--asphalt-2); display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 10px; padding: 8px 12px; text-align: left; }
+.mode svg { width: 30px; height: 30px; }
+.mode b { display: block; font: 400 21px/1 var(--display); }
+.mode small { display: block; font-size: 12.5px; color: var(--mist); line-height: 1.25; margin-top: 3px; }
+.mode[aria-selected="true"] { border-color: var(--yellow); background: linear-gradient(180deg, #2c2a1c, #1d1c16); box-shadow: 0 0 0 2px var(--yellow-soft); }
+.mode[aria-selected="true"] svg { color: var(--yellow); }
+.tracks { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.track { width: 100%; display: grid; grid-template-columns: 112px minmax(0, 1fr) auto; gap: 12px; align-items: center; text-align: left; padding: 8px 12px 8px 8px; border-radius: 14px; border: 1.5px solid var(--line-hi); background: linear-gradient(180deg, var(--asphalt-3), var(--asphalt-2)); box-shadow: 0 4px 0 #07080c; }
+.track:active { transform: translateY(2px); }
+.thumb { position: relative; width: 112px; height: 62px; border-radius: 9px; background: var(--asphalt-3) center / cover no-repeat; border: 1px solid rgba(255,255,255,.08); }
+.thumb b { position: absolute; left: 6px; top: 5px; font: 400 20px/1 var(--display); color: #fff; text-shadow: 0 2px 0 #000, 0 0 6px #000; }
+.t-txt { display: grid; gap: 1px; min-width: 0; }
+.t-yr { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--mist); }
+.t-name { font: 400 20px/1.05 var(--display); color: var(--chalk); }
+.t-skill { font-size: 13.5px; color: var(--mist); line-height: 1.25; }
+.t-end { display: grid; justify-items: end; gap: 3px; font-size: 12.5px; color: var(--mist); font-variant-numeric: tabular-nums; }
+.track.locked { opacity: 0.55; }
+.track.locked .thumb { filter: grayscale(1) brightness(.6); }
+.track.next { border-color: var(--yellow); }
+.lock { width: 22px; height: 22px; color: var(--mist); }
+.trophies { display: flex; gap: 2px; }
+.trophies svg { width: 17px; height: 17px; }
+.classes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.cls { min-height: 62px; padding: 8px 4px; border-radius: 12px; border: 2px solid var(--line-hi); background: var(--asphalt); display: grid; gap: 3px; justify-items: center; align-content: center; text-align: center; min-width: 0; }
+.cls b { font: 400 18px/1 var(--display); }
+.cls small { font-size: 12px; color: var(--mist); line-height: 1.2; }
+.cls[aria-pressed="true"] { border-color: var(--yellow); background: var(--asphalt-3); box-shadow: 0 0 0 2px var(--yellow-soft); }
+.cls:disabled { opacity: .5; }
+.cls-note { font-size: 14px; color: var(--mist); margin-top: 8px; }
+.foot { font-size: 13.5px; color: var(--mist); text-align: center; max-width: 48ch; margin: 0 auto; }
+
+/* ===== race ===== */
+.race { height: 100%; max-width: 600px; display: flex; flex-direction: column; gap: 6px; padding-block: 8px 10px; }
+.hud { flex: none; display: flex; align-items: center; gap: 8px; min-height: 46px; }
+.hud-mid { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.hud-track { font: 400 18px/1.05 var(--display); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hud-mode { font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--mist); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hud-right { display: grid; justify-items: end; gap: 2px; min-width: 86px; }
+.hud-time { font-weight: 700; font-size: 21px; line-height: 1; font-variant-numeric: tabular-nums; }
+.hud-time.small { font-size: 13px; color: var(--mist); }
+.pace { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+.pace i { width: 10px; height: 10px; border-radius: 50%; background: var(--mist); }
+.pos { font: 400 34px/0.9 var(--display); font-variant-numeric: tabular-nums; }
+.pos small { font-size: 18px; color: var(--mist); }
+.stage { position: relative; flex: 1 1 auto; min-height: 150px; border-radius: 14px; overflow: hidden; background: #000; border: 1.5px solid var(--line); }
+.stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.lights { position: absolute; z-index: 5; left: 50%; top: 22%; transform: translateX(-50%); display: grid; justify-items: center; gap: 8px; pointer-events: none; }
+.gantry { display: flex; gap: 10px; padding: 10px 14px; border-radius: 14px; background: #0b0c10; border: 2px solid #2b2f3c; box-shadow: 0 10px 30px rgba(0,0,0,.6); }
+.lamp { width: clamp(30px, 9vw, 44px); aspect-ratio: 1; border-radius: 50%; background: #2a0f12; box-shadow: inset 0 -4px 8px rgba(0,0,0,.6); }
+.lamp.red { background: radial-gradient(circle at 40% 35%, #ffb3b3, var(--red) 55%, #9a1111); box-shadow: 0 0 24px var(--red); }
+.lamp.green { background: radial-gradient(circle at 40% 35%, #d9ffc4, var(--lime) 55%, #2f9a11); box-shadow: 0 0 24px var(--lime); }
+.go { font: 400 clamp(46px, 15vw, 76px)/1 var(--display); color: var(--lime); text-shadow: 0 0 24px rgba(141,255,90,.6), 0 4px 0 #000; }
+.callout { position: absolute; left: 50%; top: 30%; z-index: 4; transform: translate(-50%, -50%); pointer-events: none; font: 400 clamp(26px, 8vw, 40px)/1.05 var(--display); text-align: center; color: var(--yellow); text-shadow: 0 0 22px rgba(255,210,63,.55), 0 3px 0 #000; white-space: nowrap; animation: callout 0.95s ease-out forwards; }
+.callout small { display: block; font: 700 16px/1.2 var(--body); color: var(--chalk); text-shadow: 0 2px 0 #000; }
+.race.gp .callout { left: 64%; }
+.callout.bad { color: #ffd2d2; text-shadow: 0 0 22px var(--red), 0 3px 0 #000; animation-duration: 1.5s; }
+.callout.cyan { color: var(--cyan); text-shadow: 0 0 22px var(--cyan), 0 3px 0 #000; }
+@keyframes callout { 0% { transform: translate(-50%, -20%) scale(.7); opacity: 0; } 15% { transform: translate(-50%, -50%) scale(1.06); opacity: 1; } 75% { opacity: 1; } 100% { transform: translate(-50%, -70%) scale(1); opacity: 0; } }
+.qcard { flex: none; border-radius: 12px; padding: 9px 12px; display: grid; gap: 3px; justify-items: center; text-align: center; background: linear-gradient(180deg, #1a1e2b, #12151e); border: 1.5px solid var(--line-hi); box-shadow: inset 0 1px 0 rgba(255,255,255,.06); }
+.q-prompt { font-weight: 700; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--yellow); }
+.q-prompt .v { text-transform: none; letter-spacing: 0; font-size: 1.2em; }
+.q-ctx { font-size: 14.5px; color: var(--mist); max-width: 40ch; line-height: 1.35; }
+.q-given, .q-ask { font-size: 16.5px; font-weight: 700; }
+.q-main { width: 100%; font-size: clamp(26px, 8vw, 40px); line-height: 1.22; white-space: nowrap; overflow: hidden; }
+.q-main.multi { font-size: clamp(22px, 6.4vw, 32px); }
+.dash { flex: none; display: grid; gap: 7px; padding: 9px; border-radius: 16px; border: 2px solid #3a4152;
+  background-color: #171a22; background-image: repeating-linear-gradient(45deg, rgba(255,255,255,.025) 0 2px, transparent 2px 6px), repeating-linear-gradient(-45deg, rgba(255,255,255,.025) 0 2px, transparent 2px 6px); box-shadow: 0 10px 30px var(--shadow); }
+.readout-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 9px; align-items: center; }
+.lcd { height: 52px; min-width: 0; display: flex; align-items: center; gap: 10px; padding: 0 14px; overflow: hidden; border-radius: 10px; background: var(--lcd); border: 1.5px solid #2c3242; box-shadow: inset 0 2px 10px rgba(0,0,0,.7); transition: border-color .2s, box-shadow .2s; }
+.lcd.ok { border-color: var(--lime); box-shadow: inset 0 2px 10px rgba(0,0,0,.7), 0 0 14px rgba(141,255,90,.4); }
+.lcd.no { border-color: var(--red); box-shadow: inset 0 2px 10px rgba(0,0,0,.7), 0 0 14px var(--red-soft); }
+.lcd.nudge { animation: shake 0.3s; }
+@keyframes shake { 20% { transform: translateX(-6px); } 45% { transform: translateX(5px); } 70% { transform: translateX(-3px); } }
+.r-label { font-weight: 700; font-size: 21px; color: var(--mist); white-space: nowrap; }
+.r-label .v { color: var(--cyan); }
+.r-val { font-weight: 700; font-size: 31px; color: var(--yellow); text-shadow: 0 0 12px rgba(255,210,63,.5); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.r-unit { font-size: 15px; font-weight: 700; color: var(--mist); }
+.caret { width: 3px; height: 26px; background: var(--yellow); border-radius: 2px; animation: blink 1.05s steps(1) infinite; margin-left: -6px; }
+@keyframes blink { 50% { opacity: 0; } }
+.nitro { --fill: 0; position: relative; width: 74px; height: 52px; border-radius: 26px; border: 0; padding: 0; color: #9aa3b8; font: 400 17px/1 var(--display); letter-spacing: .04em;
+  background: conic-gradient(var(--cyan) calc(var(--fill) * 360deg), #262b3a 0) border-box; display: grid; place-items: center; }
+.nitro::before { content: ""; position: absolute; inset: 4px; border-radius: 22px; background: #10131b; }
+.nitro span { position: relative; }
+.nitro.ready { color: #062029; animation: ready 0.8s ease-in-out infinite; }
+.nitro.ready::before { background: radial-gradient(circle at 50% 30%, #b8f6ff, var(--cyan) 60%, #0b8fb0); }
+.nitro.firing::before { background: radial-gradient(circle at 50% 30%, #fff, #7cf2ff 60%, #0bb7e0); }
+@keyframes ready { 50% { box-shadow: 0 0 22px var(--cyan); } }
+.keys { display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-rows: var(--key-h); gap: 7px; }
+.keys button { border: 0; border-radius: 11px; background: linear-gradient(180deg, #f4f6fa, var(--key)); color: var(--key-ink); font-weight: 700; font-size: 25px; box-shadow: 0 4px 0 var(--key-edge); touch-action: manipulation; display: grid; place-items: center; padding: 0; -webkit-user-select: none; user-select: none; }
+.keys button:active:not(:disabled), .keys button.down { transform: translateY(3px); box-shadow: 0 1px 0 var(--key-edge); }
+.keys button:disabled { opacity: 0.4; }
+.keys svg { width: 28px; height: 28px; }
+.keys .k-go { grid-column: 4; grid-row: 2 / span 3; background: linear-gradient(180deg, #b6ff8f, var(--lime) 50%, #4fc523); font: 400 30px/1 var(--display); box-shadow: 0 4px 0 #2a7a10; }
+.keys .k-zero { grid-column: 2 / span 2; }
+
+/* ===== results ===== */
+.results { padding-block: 20px 48px; display: flex; flex-direction: column; gap: 16px; }
+.res-card { position: relative; border-radius: 18px; padding: 20px 18px 18px; display: grid; gap: 10px; justify-items: center; text-align: center; overflow: hidden; border: 1.5px solid var(--line-hi);
+  background: radial-gradient(70% 60% at 50% 0%, rgba(255,210,63,.18), transparent 70%), linear-gradient(180deg, #1f2434, #141722); }
+.res-card::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 10px; background: repeating-linear-gradient(90deg, #f3f5fa 0 10px, #101219 10px 20px); }
+.res-head { font-size: 12.5px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--mist); margin-top: 6px; }
+.res-big { font: 400 clamp(46px, 15vw, 72px)/1 var(--display); font-variant-numeric: tabular-nums; }
+.res-medal { display: flex; align-items: center; gap: 10px; font: 400 24px/1 var(--display); }
+.res-medal svg { width: 54px; height: 54px; animation: pop 0.5s cubic-bezier(.3,1.8,.5,1) both .3s; }
+@keyframes pop { from { transform: scale(.3) rotate(-30deg); } to { transform: none; } }
+.targets { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; width: 100%; }
+.targets li { padding: 8px 4px; border-radius: 10px; border: 1.5px solid var(--line); font-size: 13px; color: var(--mist); display: grid; gap: 2px; justify-items: center; }
+.targets li b { font-size: 16px; color: var(--chalk); font-variant-numeric: tabular-nums; }
+.targets li.met { border-color: var(--yellow); color: var(--yellow); }
+.res-stats { display: grid; grid-template-columns: repeat(3, 1fr); width: 100%; border-top: 1.5px dashed var(--line-hi); padding-top: 10px; margin: 0; }
+.res-stats div { display: grid; gap: 2px; }
+.res-stats dt { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--mist); }
+.res-stats dd { margin: 0; font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.podium { display: grid; grid-template-columns: repeat(3, 1fr); align-items: end; gap: 6px; width: 100%; }
+.step { display: grid; justify-items: center; gap: 4px; min-width: 0; }
+.step .car { width: 100%; aspect-ratio: 2 / 1; }
+.step .car svg { width: 100%; height: 100%; }
+.step b { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+.step .block { width: 100%; border-radius: 8px 8px 0 0; display: grid; place-items: center; font: 400 26px/1 var(--display); color: var(--key-ink); }
+.step.p1 .block { height: 70px; background: linear-gradient(180deg, #ffe27a, var(--gold)); }
+.step.p2 .block { height: 52px; background: linear-gradient(180deg, #f4f6fa, var(--silver)); }
+.step.p3 .block { height: 40px; background: linear-gradient(180deg, #f1b17c, var(--bronze)); }
+.step.you b { color: var(--yellow); }
+.classif { list-style: none; margin: 0; padding: 0; width: 100%; display: grid; gap: 4px; text-align: left; }
+.classif li { display: grid; grid-template-columns: 34px 12px minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 6px 10px; border-radius: 8px; background: rgba(255,255,255,.03); font-size: 14.5px; font-variant-numeric: tabular-nums; }
+.classif li.you { background: var(--yellow-soft); border: 1px solid var(--yellow); }
+.classif .p { font: 400 18px/1 var(--display); }
+.classif .dot { width: 12px; height: 12px; border-radius: 50%; }
+.classif .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.classif .gap { color: var(--mist); }
+.news { display: grid; gap: 8px; }
+.news p { padding: 12px 14px; border-radius: 12px; background: var(--asphalt-2); border: 1.5px solid var(--line); font-size: 15.5px; }
+.news p.hot { border-color: var(--yellow); }
+.res-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.res-actions .wide { grid-column: 1 / -1; }
+.fixes { display: grid; gap: 10px; }
+.fixes h3 { font: 400 26px/1.1 var(--display); }
+.fix-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.fix { background: #f3f5fa; color: var(--key-ink); border-radius: 12px; padding: 14px 16px; display: grid; gap: 8px; }
+.fix .v { color: #0b74a8; }
+.fix .box { border-color: #0b74a8; background: transparent; }
+.fix .q { font-size: clamp(19px, 5.6vw, 24px); overflow-x: auto; }
+.fix .ctx { font-size: 14px; color: #555d70; }
+.fix .a { font-size: 15px; color: #555d70; }
+.fix .a b { color: var(--key-ink); }
+.fix summary { cursor: pointer; font-weight: 700; color: #0b74a8; }
+.steps { list-style: none; margin: 0; padding: 0; counter-reset: s; }
+.steps li { display: grid; grid-template-columns: 26px minmax(0, 1fr); column-gap: 8px; padding: 8px 0; border-top: 1.5px dashed #c5cad6; counter-increment: s; }
+.steps li::before { content: counter(s); grid-row: span 2; font: 400 20px/1.3 var(--display); color: #0b74a8; }
+.steps .s-m { font-size: clamp(18px, 5.2vw, 22px); line-height: 1.35; overflow-wrap: anywhere; }
+.steps .s-n { font-size: 14.5px; color: #555d70; }
+
+/* ===== sheets ===== */
+.sheet { position: fixed; inset: 0; z-index: 50; display: flex; align-items: flex-end; justify-content: center; background: var(--scrim); }
+.sheet-card { width: 100%; max-width: 600px; max-height: calc(100% - 16px); overflow: auto; overscroll-behavior: contain; background: linear-gradient(180deg, var(--asphalt-3), var(--asphalt-2) 120px); border: 1.5px solid var(--line-hi); border-bottom: 0; border-radius: 20px 20px 0 0;
+  padding: 20px max(18px, env(safe-area-inset-right, 0px)) calc(22px + env(safe-area-inset-bottom, 0px)) max(18px, env(safe-area-inset-left, 0px)); display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; animation: up .26s ease-out; }
+@keyframes up { from { transform: translateY(26px); } to { transform: none; } }
+.sheet-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.sheet-head h2 { font: 400 clamp(28px, 8vw, 36px)/1 var(--display); }
+.meta { font-weight: 700; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--yellow); }
+.muted { color: var(--mist); }
+.ts-art { width: 100%; aspect-ratio: 16 / 6; border-radius: 12px; background: var(--asphalt-3) center / cover no-repeat; border: 1px solid var(--line); }
+.example { padding: 14px 12px; border-radius: 12px; text-align: center; font-size: clamp(22px, 6.6vw, 30px); background: #12151e; border: 1.5px solid var(--line-hi); white-space: nowrap; overflow-x: auto; }
+.info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.info-grid div { padding: 8px; border-radius: 10px; border: 1.5px solid var(--line); display: grid; gap: 2px; justify-items: center; font-size: 12.5px; color: var(--mist); text-align: center; }
+.info-grid b { font-size: 16px; color: var(--chalk); font-variant-numeric: tabular-nums; }
+.grid-line { display: flex; flex-wrap: wrap; gap: 6px; }
+.field { display: grid; gap: 8px; }
+.field > label, fieldset legend { font-weight: 700; font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--mist); padding: 0; }
+fieldset { border: 0; margin: 0; padding: 0; display: grid; gap: 8px; min-width: 0; }
+.name-row { display: flex; gap: 8px; }
+.name-row input { flex: 1 1 0; width: 0; min-width: 0; height: 50px; padding: 0 14px; border-radius: 12px; border: 2px solid var(--line-hi); background: var(--asphalt); color: var(--chalk); font: 400 22px/1 var(--display); }
+.name-row input:focus { border-color: var(--yellow); outline: none; }
+.opts { display: grid; gap: 8px; }
+.c5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.choice { position: relative; display: grid; }
+.choice input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.choice > span { min-height: 48px; padding: 6px 4px; border-radius: 12px; border: 2px solid var(--line-hi); background: var(--asphalt); display: grid; place-items: center; text-align: center; font-size: 14px; font-weight: 700; color: var(--mist); }
+.choice input:checked + span { border-color: var(--yellow); background: var(--asphalt-3); color: var(--chalk); box-shadow: 0 0 0 2px var(--yellow-soft); }
+.choice input:focus-visible + span { outline: 3px solid var(--cyan); outline-offset: 2px; }
+.danger-btn { color: var(--red); border-color: var(--red); background: transparent; }
+.tabs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 5px; }
+.tab { min-height: 40px; padding: 6px 2px; border-radius: 20px; border: 1.5px solid var(--line-hi); background: var(--asphalt); font-weight: 700; font-size: clamp(11.5px, 3.4vw, 14px); color: var(--mist); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tab[aria-selected="true"] { background: var(--yellow); border-color: var(--yellow); color: var(--key-ink); }
+.gar-preview { border-radius: 16px; padding: 8px 10px 4px; background: radial-gradient(60% 80% at 50% 20%, rgba(255,255,255,.18), transparent 70%), linear-gradient(180deg, #232a3e, #121520); border: 1.5px solid var(--line); }
+.gar-preview .sr-car { max-width: 360px; }
+.vgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.vcard { border-radius: 12px; border: 2px solid var(--line-hi); background: var(--asphalt); padding: 8px 10px 10px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px; text-align: left; min-width: 0; }
+.vcard .vthumb { display: block; width: 100%; aspect-ratio: 2 / 1; }
+.vcard .vthumb svg { width: 100%; height: 100%; }
+.vcard b { font: 400 18px/1 var(--display); }
+.vcard p { font-size: 12.5px; color: var(--mist); line-height: 1.3; }
+.vcard .tag { font-size: 12px; font-weight: 700; color: var(--lime); }
+.vcard.on { border-color: var(--yellow); box-shadow: 0 0 0 2px var(--yellow-soft); }
+.vcard.locked { opacity: .62; }
+.vcard.locked .vthumb { filter: brightness(0) opacity(.55); }
+.vcard.locked .tag { color: var(--mist); }
+.stats { display: grid; gap: 3px; margin-top: 2px; }
+.stat { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 6px; align-items: center; font-size: 11px; font-weight: 700; color: var(--mist); letter-spacing: .04em; text-transform: uppercase; }
+.bar { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; }
+.bar i { height: 6px; border-radius: 2px; background: var(--asphalt-3); }
+.bar i.on { background: var(--yellow); }
+.items { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.item { min-height: 88px; padding: 8px 6px; border-radius: 12px; border: 2px solid var(--line-hi); background: var(--asphalt); display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; align-content: center; gap: 4px; text-align: center; font-size: 13px; font-weight: 700; min-width: 0; }
+.item .sw { width: 38px; height: 38px; border-radius: 50%; border: 2px solid rgba(255,255,255,.25); }
+.item .ithumb { display: block; width: 100%; aspect-ratio: 2 / 1; }
+.item .ithumb svg { width: 100%; height: 100%; }
+.item .cost { font-size: 12px; color: var(--lime); display: flex; align-items: center; gap: 3px; }
+.item .cost.short { color: var(--mist); }
+.item.on { border-color: var(--yellow); box-shadow: 0 0 0 2px var(--yellow-soft); }
+.numpick { display: flex; align-items: center; justify-content: center; gap: 14px; }
+.numpick output { width: 110px; height: 110px; border-radius: 50%; display: grid; place-items: center; background: #fff; color: #15161c; font: 400 54px/1 var(--display); box-shadow: 0 0 0 6px var(--asphalt-3); }
+.toast { position: fixed; z-index: 60; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); width: max-content; max-width: calc(100% - 32px); padding: 12px 18px; border-radius: 14px; background: var(--chalk); color: var(--key-ink); font-weight: 700; font-size: 15px; box-shadow: 0 10px 30px var(--shadow); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+@media (max-height: 720px) { .race { gap: 5px; padding-block: 6px 8px; } .qcard { padding: 6px 10px; gap: 2px; } .q-ctx { font-size: 13px; } .lcd { height: 46px; } .nitro { height: 46px; } .r-val { font-size: 27px; } .dash { padding: 7px; gap: 6px; } .keys { gap: 6px; } }
+@media (orientation: landscape) and (max-height: 540px) {
+  .race { max-width: 1000px; display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; column-gap: 12px; }
+  .hud { grid-column: 1 / -1; } .stage { grid-column: 1; grid-row: 2; } .qcard { grid-column: 1; grid-row: 3; } .dash { grid-column: 2; grid-row: 2 / span 2; align-content: start; }
+  :root { --key-h: clamp(34px, 12.5vh, 56px); }
+}
+@media (prefers-reduced-motion: reduce) { .callout, .nitro.ready, .res-medal svg, .sheet-card, .caret { animation: none; } }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <!-- ===== PADDOCK ===== -->
+  <section id="home" class="screen home" aria-labelledby="srName">
+    <div class="topbar">
+      <div class="logo" aria-label="Solve for Speed"><b>SOLVE</b> <i>for</i> SPEED</div>
+      <div style="display:flex;gap:8px">
+        <button class="icon-btn" id="soundBtn" type="button" aria-label="Turn sound off"></button>
+        <button class="icon-btn" id="settingsBtn" type="button" aria-label="Driver settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 3v18M12 3v18M18 3v18"/><rect x="3.5" y="13" width="5" height="3.6" rx="1" fill="currentColor" stroke="none"/><rect x="9.5" y="6" width="5" height="3.6" rx="1" fill="currentColor" stroke="none"/><rect x="15.5" y="10" width="5" height="3.6" rx="1" fill="currentColor" stroke="none"/></svg></button>
+      </div>
+    </div>
+    <div class="showroom">
+      <div class="sr-car" id="srCar"></div>
+      <div class="sr-row">
+        <div style="min-width:0"><h1 class="sr-name" id="srName">Driver</h1><div class="sr-sub" id="srSub"></div><div class="sr-chips" id="srChips"></div></div>
+        <button class="btn primary" id="garageBtn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.2L3 17.8 6.2 21l6.3-6.3a4 4 0 0 0 5.2-5.4l-2.6 2.6-2.5-.6-.6-2.5 2.9-2.5Z"/></svg>Garage</button>
+      </div>
+    </div>
+    <div class="wallet">
+      <div><b id="wCoins"></b><span>Coins</span></div>
+      <div><b id="wPoints"></b><span>Trophy points</span></div>
+      <div><b id="wRank"></b><span id="wNext">Licence</span><div class="meter"><i id="wMeter"></i></div></div>
+    </div>
+    <div class="modes" role="tablist" aria-label="Race mode">
+      <button class="mode" type="button" role="tab" id="modeTT" data-mode="tt" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="14" r="7.5"/><path d="M12 14V9.5M9.5 2.5h5M12 2.5v4M18.5 7l1.5-1.5"/></svg><span><b>Time Trial</b><small>Beat the clock for medals</small></span></button>
+      <button class="mode" type="button" role="tab" id="modeGP" data-mode="gp" aria-selected="false"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 2h2v20H5z"/><path d="M7 3h13l-2.5 4L20 11H7z" opacity=".9"/><path fill="#101219" d="M9 4h2.5v2.2H9zM14 4h2.5v2.2H14zM11.5 6.2H14v2.2h-2.5zM9 8.4h2.5v2.2H9zM16.5 6.2H18v2.2h-1.5zM14 8.4h2.5v2.2H14z"/></svg><span><b>Grand Prix</b><small>Race 5 rivals for the podium</small></span></button>
+    </div>
+    <ol class="tracks" id="tracks" aria-label="Tracks"></ol>
+    <p class="foot">Every track is a different bit of algebra, roughly in the order schools in England teach it, from Year 3 missing numbers to Year 9 equations. Type the answer and hit GO: right answers boost you, mistakes spin you out.</p>
+  </section>
+
+  <!-- ===== RACE ===== -->
+  <section id="race" class="screen race" hidden aria-label="Race">
+    <div class="hud">
+      <button class="icon-btn" id="pauseBtn" type="button" aria-label="Pause"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></button>
+      <div class="hud-mid"><div class="hud-track" id="hudTrack"></div><div class="hud-mode" id="hudMode"></div></div>
+      <div class="hud-right" id="hudRight"></div>
+    </div>
+    <div class="stage" id="stage">
+      <canvas id="cv" aria-hidden="true"></canvas>
+      <div class="lights" id="lights" hidden><div class="gantry"><i class="lamp"></i><i class="lamp"></i><i class="lamp"></i></div><div class="go" id="goText" hidden>GO!</div></div>
+      <p class="sr" id="live" aria-live="assertive"></p>
+    </div>
+    <div class="qcard" id="qcard">
+      <div class="q-prompt" id="qPrompt"></div>
+      <div class="q-given math" id="qGiven" hidden></div>
+      <div class="q-ctx" id="qCtx" hidden></div>
+      <div class="q-main math" id="qMain"></div>
+      <div class="q-ask math" id="qAsk" hidden></div>
+    </div>
+    <div class="dash">
+      <div class="readout-row">
+        <div class="lcd" id="lcd" aria-live="polite"><span class="r-label math" id="rLabel"></span><span class="r-val" id="rVal"></span><span class="caret" aria-hidden="true"></span><span class="r-unit" id="rUnit"></span></div>
+        <button class="nitro" id="nitroBtn" type="button" disabled aria-label="Fire nitro"><span>NITRO</span></button>
+      </div>
+      <div class="keys" id="keys">
+        <button type="button" data-k="1">1</button><button type="button" data-k="2">2</button><button type="button" data-k="3">3</button>
+        <button type="button" data-k="back" aria-label="Delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5h11v14H9l-6-7Z"/><path d="m12.5 9.5 5 5m0-5-5 5"/></svg></button>
+        <button type="button" data-k="4">4</button><button type="button" data-k="5">5</button><button type="button" data-k="6">6</button>
+        <button type="button" data-k="enter" class="k-go" aria-label="Go">GO</button>
+        <button type="button" data-k="7">7</button><button type="button" data-k="8">8</button><button type="button" data-k="9">9</button>
+        <button type="button" data-k="neg" id="keyNeg" aria-label="Minus sign">&minus;</button><button type="button" data-k="0" class="k-zero">0</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== RESULTS ===== -->
+  <section id="results" class="screen results" hidden aria-labelledby="resTitle">
+    <div class="res-card" id="resCard"></div>
+    <div class="news" id="news"></div>
+    <div class="res-actions">
+      <button class="btn primary wide" id="nextBtn" type="button">Next track</button>
+      <button class="btn" id="againBtn" type="button">Race again</button>
+      <button class="btn ghost" id="homeBtn" type="button">Paddock</button>
+    </div>
+    <section class="fixes" id="fixes" hidden aria-labelledby="fixTitle">
+      <h3 id="fixTitle">Pit-lane review</h3>
+      <ol class="fix-list" id="fixList"></ol>
+    </section>
+  </section>
+</div>
+
+<!-- ===== SHEETS ===== -->
+<div class="sheet" id="trackSheet" role="dialog" aria-modal="true" aria-labelledby="tsName" hidden>
+  <div class="sheet-card">
+    <div class="sheet-head"><div style="display:grid;gap:6px;min-width:0"><div class="meta" id="tsMeta"></div><h2 id="tsName"></h2></div>
+      <button class="icon-btn" type="button" data-close aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+    <div class="ts-art" id="tsArt"></div>
+    <p style="font-weight:700;font-size:17px" id="tsSkill"></p>
+    <p class="muted" id="tsBlurb"></p>
+    <div class="example math" id="tsExample"></div>
+    <div id="tsMode"></div>
+    <p class="muted" id="tsBest"></p>
+    <p class="muted" id="tsLock" hidden></p>
+    <div class="res-actions"><button class="btn primary wide" id="tsGo" type="button">Start</button><button class="btn wide" id="tsGarage" type="button"></button></div>
+  </div>
+</div>
+
+<div class="sheet" id="setupSheet" role="dialog" aria-modal="true" aria-labelledby="suTitle" hidden>
+  <form class="sheet-card" id="setupForm" novalidate>
+    <div class="sheet-head"><div style="display:grid;gap:6px;min-width:0"><div class="meta" id="suMeta">Welcome to the paddock</div><h2 id="suTitle">Sign up to race</h2></div>
+      <button class="icon-btn" type="button" data-close id="suClose" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+    <div class="field"><label for="nameInput">Driver name</label><div class="name-row"><input id="nameInput" maxlength="24" autocomplete="off" spellcheck="false">
+      <button class="icon-btn" type="button" id="diceBtn" aria-label="Pick a random name"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="4" fill="none" stroke="currentColor" stroke-width="2"/><g fill="currentColor"><circle cx="8.3" cy="8.3" r="1.6"/><circle cx="15.7" cy="8.3" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="8.3" cy="15.7" r="1.6"/><circle cx="15.7" cy="15.7" r="1.6"/></g></svg></button></div></div>
+    <fieldset id="suVehicles"><legend>Choose your vehicle</legend><div class="vgrid" id="suVGrid"></div></fieldset>
+    <fieldset><legend>School year</legend><div class="opts c5" id="yearGrid"></div><p class="muted" style="font-size:13.5px">This opens the tracks that match. Medals and podiums open the rest.</p></fieldset>
+    <button class="btn danger-btn" type="button" id="resetBtn" hidden>Wipe all progress</button>
+    <button class="btn primary" type="submit" id="suGo">Head to the paddock</button>
+  </form>
+</div>
+
+<div class="sheet" id="garageSheet" role="dialog" aria-modal="true" aria-labelledby="gTitle" hidden>
+  <div class="sheet-card">
+    <div class="sheet-head"><div style="display:grid;gap:6px;min-width:0"><div class="meta" id="gCoins"></div><h2 id="gTitle">Garage</h2></div>
+      <button class="icon-btn" type="button" data-close aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+    <div class="gar-preview"><div class="sr-car" id="gCar"></div></div>
+    <div class="tabs" role="tablist" id="gTabs"></div>
+    <div id="gPanel" role="tabpanel"></div>
+  </div>
+</div>
+
+<div class="sheet" id="pauseSheet" role="dialog" aria-modal="true" aria-labelledby="psTitle" hidden>
+  <div class="sheet-card">
+    <div class="sheet-head"><h2 id="psTitle">Paused</h2></div>
+    <p class="muted" id="psText">The clock is stopped.</p>
+    <div class="res-actions"><button class="btn primary wide" type="button" id="resumeBtn">Keep racing</button><button class="btn" type="button" id="restartBtn">Restart</button><button class="btn" type="button" id="quitBtn">Back to the paddock</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+/* Rock the Unknown: question bank.
+   Pure functions, no DOM. The page inlines this file; the test harness requires it. */
+(function (root) {
+  'use strict';
+
+  // ---------- randomness ----------
+  let rnd = Math.random;
+  function seed(s) {
+    let a = s >>> 0;
+    rnd = function () {
+      a = (a + 0x6D2B79F5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function unseed() { rnd = Math.random; }
+  const R = (a, b) => a + Math.floor(rnd() * (b - a + 1));
+  const pick = (arr) => arr[Math.floor(rnd() * arr.length)];
+  const chance = (p) => rnd() < p;
+  function choose(list) {
+    let total = 0;
+    for (const item of list) total += item[0];
+    let r = rnd() * total;
+    for (const item of list) { r -= item[0]; if (r < 0) return item[1]; }
+    return list[list.length - 1][1];
+  }
+  const gcd = (a, b) => (b === 0 ? Math.abs(a) : gcd(b, a % b));
+
+  // ---------- notation ----------
+  const MINUS = '−', TIMES = '×', DIV = '÷';
+  const P = ' + ', M = ' ' + MINUS + ' ', T = ' ' + TIMES + ' ', D = ' ' + DIV + ' ';
+  const LETTERS = ['x', 'y', 'n', 'a', 'm', 'p', 'k', 't', 'w'];
+
+  const num = (n) => (n < 0 ? MINUS + Math.abs(n) : String(n));
+  const v = (l) => '<i class="v">' + l + '</i>';
+  const BOX = '<span class="box"></span>';
+  const frac = (top, bottom) => '<span class="frac"><span class="ft">' + top + '</span><span class="fb">' + bottom + '</span></span>';
+  const sq = (x) => x + '<sup>2</sup>';
+  const lines = (...ls) => ls.map((l) => '<span class="ml">' + l + '</span>').join('');
+
+  function term(c, x) {            // a leading term: x, −x, 3x
+    if (c === 1) return x;
+    if (c === -1) return MINUS + x;
+    return num(c) + x;
+  }
+  function sterm(c, x) {           // a following term with its sign: + x, − 3x
+    const a = Math.abs(c);
+    return (c < 0 ? M : P) + (a === 1 ? x : a + x);
+  }
+  const sgn = (n) => (n < 0 ? M + Math.abs(n) : P + n);
+  const lin = (a, x, b) => term(a, x) + (b === 0 ? '' : sgn(b));
+  function two() {
+    const a = pick(LETTERS);
+    let b = pick(LETTERS);
+    while (b === a) b = pick(LETTERS);
+    return [a, b];
+  }
+  function ord(n) {
+    const s = n % 100;
+    if (s >= 11 && s <= 13) return n + 'th';
+    return n + ({ 1: 'st', 2: 'nd', 3: 'rd' }[n % 10] || 'th');
+  }
+  const jumpText = (d) => (d > 0 ? '+' + d : MINUS + Math.abs(d));
+
+  function Q(o) {
+    o.key = [o.prompt, o.given || '', o.ctx || '', o.html].join('|');
+    return o;
+  }
+
+  // ======================================================================
+  // Night 1: The Bedroom. Missing numbers.
+  // ======================================================================
+  function bedroom() {
+    const ask = 'What goes in the box?', L = BOX + ' =';
+    return choose([
+      [3, () => {
+        const x = R(3, 45), a = R(3, 30), c = x + a, flip = chance(0.4);
+        return Q({ kind: 'eq', unknown: '□', prompt: ask, label: L, answer: x,
+          html: (flip ? a + P + BOX : BOX + P + a) + ' = ' + c,
+          hint: flip ? `What do you add to ${a} to make ${c}?` : `Work backwards. Take ${a} away from ${c}.`,
+          steps: [
+            { m: `${BOX} = ${c}${M}${a}`, n: `Adding ${a} is undone by taking ${a} away.`, k: 'eq' },
+            { m: `${BOX} = ${x}`, k: 'eq' }] });
+      }],
+      [3, () => {
+        if (chance(0.55)) {
+          const c = R(2, 40), a = R(3, 30), x = c + a;
+          return Q({ kind: 'eq', unknown: '□', prompt: ask, label: L, answer: x,
+            html: `${BOX}${M}${a} = ${c}`,
+            hint: `Work backwards. Add the ${a} back on to ${c}.`,
+            steps: [
+              { m: `${BOX} = ${c}${P}${a}`, n: `Taking away ${a} is undone by adding ${a}.`, k: 'eq' },
+              { m: `${BOX} = ${x}`, k: 'eq' }] });
+        }
+        const a = R(20, 70), x = R(3, a - 3), c = a - x;
+        return Q({ kind: 'eq', unknown: '□', prompt: ask, label: L, answer: x,
+          html: `${a}${M}${BOX} = ${c}`,
+          hint: `How far is it from ${c} up to ${a}?`,
+          steps: [
+            { m: `${BOX} = ${a}${M}${c}`, n: `The box is the gap between ${c} and ${a}.`, k: 'eq' },
+            { m: `${BOX} = ${x}`, k: 'eq' }] });
+      }],
+      [3, () => {
+        const x = R(2, 12), a = R(2, 12), c = x * a, flip = chance(0.4);
+        return Q({ kind: 'eq', unknown: '□', prompt: ask, label: L, answer: x,
+          html: (flip ? a + T + BOX : BOX + T + a) + ' = ' + c,
+          hint: `Which number times ${a} makes ${c}?`,
+          steps: [
+            { m: `${BOX} = ${c}${D}${a}`, n: `Times ${a} is undone by dividing by ${a}.`, k: 'eq' },
+            { m: `${BOX} = ${x}`, k: 'eq' }] });
+      }],
+      [2, () => {
+        if (chance(0.6)) {
+          const a = R(2, 10), c = R(2, 12), x = a * c;
+          return Q({ kind: 'eq', unknown: '□', prompt: ask, label: L, answer: x,
+            html: `${BOX}${D}${a} = ${c}`,
+            hint: `Work backwards. What is ${c} ${TIMES} ${a}?`,
+            steps: [
+              { m: `${BOX} = ${c}${T}${a}`, n: `Dividing by ${a} is undone by times ${a}.`, k: 'eq' },
+              { m: `${BOX} = ${x}`, k: 'eq' }] });
+        }
+        const x = R(2, 10), c = R(2, 10), a = x * c;
+        return Q({ kind: 'eq', unknown: '□', prompt: ask, label: L, answer: x,
+          html: `${a}${D}${BOX} = ${c}`,
+          hint: `What times ${c} makes ${a}?`,
+          steps: [
+            { m: `${BOX} = ${a}${D}${c}`, n: `If ${a} ${DIV} the box is ${c}, then ${c} ${TIMES} the box is ${a}.`, k: 'eq' },
+            { m: `${BOX} = ${x}`, k: 'eq' }] });
+      }],
+    ])();
+  }
+
+  // ======================================================================
+  // Night 2: The Garage. Letters for numbers (one step).
+  // ======================================================================
+  function garage() {
+    const l = pick(LETTERS), X = v(l), L = X + ' =', prompt = 'Find ' + X;
+    return choose([
+      [3, () => {
+        const s = R(2, 30), a = R(2, 25), c = s + a, form = R(0, 2);
+        if (form === 2) {
+          return Q({ kind: 'eq', unknown: l, prompt, label: L, answer: s,
+            html: `${c} = ${X}${P}${a}`,
+            hint: `Subtract ${a} from both sides to get ${X} on its own.`,
+            steps: [
+              { m: `${c}${M}${a} = ${X}`, n: `Subtract ${a} from both sides.`, k: 'eq' },
+              { m: `${X} = ${s}`, k: 'eq' }] });
+        }
+        return Q({ kind: 'eq', unknown: l, prompt, label: L, answer: s,
+          html: (form ? a + P + X : X + P + a) + ' = ' + c,
+          hint: `Subtract ${a} from both sides to get ${X} on its own.`,
+          steps: [
+            { m: `${X} = ${c}${M}${a}`, n: `Subtract ${a} from both sides.`, k: 'eq' },
+            { m: `${X} = ${s}`, k: 'eq' }] });
+      }],
+      [3, () => {
+        const c = R(2, 30), a = R(2, 20), s = c + a;
+        return Q({ kind: 'eq', unknown: l, prompt, label: L, answer: s,
+          html: `${X}${M}${a} = ${c}`,
+          hint: `Undo the ${MINUS} ${a}. Add ${a} to both sides.`,
+          steps: [
+            { m: `${X} = ${c}${P}${a}`, n: `Add ${a} to both sides.`, k: 'eq' },
+            { m: `${X} = ${s}`, k: 'eq' }] });
+      }],
+      [3, () => {
+        const a = R(2, 12), s = R(2, 12), c = a * s;
+        return Q({ kind: 'eq', unknown: l, prompt, label: L, answer: s,
+          html: `${a}${X} = ${c}`,
+          hint: `${a}${X} means ${a} ${TIMES} ${X}. Which number times ${a} makes ${c}?`,
+          steps: [
+            { m: `${X} = ${c}${D}${a}`, n: `${a}${X} means ${a} ${TIMES} ${X}, so divide both sides by ${a}.`, k: 'eq' },
+            { m: `${X} = ${s}`, k: 'eq' }] });
+      }],
+      [2, () => {
+        const a = R(2, 10), c = R(2, 12), s = a * c;
+        return Q({ kind: 'eq', unknown: l, prompt, label: L, answer: s,
+          html: `${X}${D}${a} = ${c}`,
+          hint: `Undo the ${DIV} ${a}. Multiply both sides by ${a}.`,
+          steps: [
+            { m: `${X} = ${c}${T}${a}`, n: `Multiply both sides by ${a}.`, k: 'eq' },
+            { m: `${X} = ${s}`, k: 'eq' }] });
+      }],
+    ])();
+  }
+
+  // ======================================================================
+  // Night 3: Village Hall. Formulae, substitution, two-number puzzles.
+  // ======================================================================
+  function subOne() {
+    const l = pick(LETTERS), X = v(l), a = R(2, 9), val = R(2, 10);
+    let b = R(1, 15) * (chance(0.35) ? -1 : 1);
+    if (a * val + b <= 0) b = Math.abs(b);
+    const ans = a * val + b;
+    return Q({ kind: 'eval', prompt: 'Work it out', given: `If ${X} = ${val}`, label: '=', answer: ans,
+      html: lin(a, X, b),
+      hint: `${a}${X} means ${a} ${TIMES} ${X}. Swap ${X} for ${val}.`,
+      steps: [
+        { m: `${a}${T}${val}${sgn(b)}`, n: `Swap ${X} for ${val}. ${a}${X} means ${a} ${TIMES} ${X}.`, k: 'val' },
+        { m: `${a * val}${sgn(b)}`, n: 'Do the times first.', k: 'val' },
+        { m: String(ans), k: 'val' }] });
+  }
+
+  function subTwo() {
+    const [p, q] = two(), Pv = v(p), Qv = v(q);
+    const pv = R(2, 9), qv = R(2, 9), c = R(2, 6), d = R(2, 5);
+    const given = `If ${Pv} = ${pv} and ${Qv} = ${qv}`;
+    const swap = `Swap ${Pv} for ${pv} and ${Qv} for ${qv}.`;
+    const forms = [
+      () => ({ html: `${c}${Pv}${P}${Qv}`, ans: c * pv + qv,
+        hint: `${c}${Pv} means ${c} ${TIMES} ${Pv}.`,
+        steps: [`${c}${T}${pv}${P}${qv}`, `${c * pv}${P}${qv}`] }),
+      () => (c * pv <= qv ? null : { html: `${c}${Pv}${M}${Qv}`, ans: c * pv - qv,
+        hint: `${c}${Pv} means ${c} ${TIMES} ${Pv}. Do the times before the take away.`,
+        steps: [`${c}${T}${pv}${M}${qv}`, `${c * pv}${M}${qv}`] }),
+      () => ({ html: `${Pv}${Qv}`, ans: pv * qv,
+        hint: `${Pv}${Qv} means ${Pv} ${TIMES} ${Qv}.`,
+        steps: [`${pv}${T}${qv}`] }),
+      () => ({ html: `${c}${Pv}${P}${d}${Qv}`, ans: c * pv + d * qv,
+        hint: 'Do both times first, then add.',
+        steps: [`${c}${T}${pv}${P}${d}${T}${qv}`, `${c * pv}${P}${d * qv}`] }),
+    ];
+    let f = null;
+    while (!f) f = pick(forms)();
+    const steps = f.steps.map((m, i) => ({ m, n: i === 0 ? swap : '', k: 'val' }));
+    steps.push({ m: String(f.ans), k: 'val' });
+    return Q({ kind: 'eval', prompt: 'Work it out', given, label: '=', answer: f.ans, html: f.html, hint: f.hint, steps });
+  }
+
+  const FORMULAS = [
+    () => {
+      const p = R(5, 15), f = R(1, 4), n = R(2, 8), ans = p * n + f, V = v('n'), S = v('C');
+      return { ctx: `Race tickets cost £${p} each, plus a £${f} booking fee. For ${V} tickets the cost in pounds is`,
+        html: `${S} = ${p}${V}${P}${f}`, ask: `Find ${S} when ${V} = ${n}`, label: `${S} = £`, unit: '', answer: ans,
+        hint: `Swap ${V} for ${n}. ${p}${V} means ${p} ${TIMES} ${V}.`,
+        steps: [
+          { m: `${S} = ${p}${T}${n}${P}${f}`, n: `Swap ${V} for ${n}.`, k: 'eq' },
+          { m: `${S} = ${p * n}${P}${f}`, n: 'Times first, then add.', k: 'eq' },
+          { m: `${S} = ${ans}`, k: 'eq' }] };
+    },
+    () => {
+      const p = R(8, 20), t = R(2, 9), ans = p * t, V = v('t'), S = v('M');
+      return { ctx: `Team caps cost £${p} each. For ${V} caps the money taken in pounds is`,
+        html: `${S} = ${p}${V}`, ask: `Find ${S} when ${V} = ${t}`, label: `${S} = £`, unit: '', answer: ans,
+        hint: `${p}${V} means ${p} ${TIMES} ${V}.`,
+        steps: [
+          { m: `${S} = ${p}${T}${t}`, n: `Swap ${V} for ${t}.`, k: 'eq' },
+          { m: `${S} = ${ans}`, k: 'eq' }] };
+    },
+    () => {
+      const s = R(3, 5), e = R(4, 12), n = R(6, 14), ans = s * n + e, V = v('n'), S = v('T');
+      return { ctx: `Each lap takes ${s} minutes, plus ${e} minutes in the pit lane. For ${V} laps the race time in minutes is`,
+        html: `${S} = ${s}${V}${P}${e}`, ask: `Find ${S} when ${V} = ${n}`, label: `${S} =`, unit: 'min', answer: ans,
+        hint: `Swap ${V} for ${n}. Times first, then add.`,
+        steps: [
+          { m: `${S} = ${s}${T}${n}${P}${e}`, n: `Swap ${V} for ${n}.`, k: 'eq' },
+          { m: `${S} = ${s * n}${P}${e}`, n: 'Times first, then add.', k: 'eq' },
+          { m: `${S} = ${ans}`, k: 'eq' }] };
+    },
+    () => {
+      const g = pick([20, 25, 30, 40, 50]), f = R(1, 9) * 10, n = R(2, 9), ans = g * n + f, V = v('n'), S = v('F');
+      return { ctx: `The team starts with ${f} fans and gains ${g} more at every race. After ${V} races the number of fans is`,
+        html: `${S} = ${g}${V}${P}${f}`, ask: `Find ${S} when ${V} = ${n}`, label: `${S} =`, unit: 'fans', answer: ans,
+        hint: `Swap ${V} for ${n}. Times first, then add.`,
+        steps: [
+          { m: `${S} = ${g}${T}${n}${P}${f}`, n: `Swap ${V} for ${n}.`, k: 'eq' },
+          { m: `${S} = ${g * n}${P}${f}`, n: 'Times first, then add.', k: 'eq' },
+          { m: `${S} = ${ans}`, k: 'eq' }] };
+    },
+    () => {
+      const s0 = R(5, 8) * 10, b = R(2, 5), n = R(2, 8), ans = s0 - b * n, V = v('n'), S = v('S');
+      return { ctx: `A car starts with ${s0} litres of fuel and uses ${b} litres every lap. After ${V} laps the fuel left in litres is`,
+        html: `${S} = ${s0}${M}${b}${V}`, ask: `Find ${S} when ${V} = ${n}`, label: `${S} =`, unit: 'litres', answer: ans,
+        hint: `Swap ${V} for ${n}. Do the times before the take away.`,
+        steps: [
+          { m: `${S} = ${s0}${M}${b}${T}${n}`, n: `Swap ${V} for ${n}.`, k: 'eq' },
+          { m: `${S} = ${s0}${M}${b * n}`, n: 'Times before take away.', k: 'eq' },
+          { m: `${S} = ${ans}`, k: 'eq' }] };
+    },
+    () => {
+      const sp = pick([30, 40, 45, 50, 60]), h = R(2, 6), ans = sp * h, V = v('h'), S = v('D');
+      return { ctx: `The team lorry drives at ${sp} miles an hour. In ${V} hours the distance in miles is`,
+        html: `${S} = ${sp}${V}`, ask: `Find ${S} when ${V} = ${h}`, label: `${S} =`, unit: 'miles', answer: ans,
+        hint: `${sp}${V} means ${sp} ${TIMES} ${V}.`,
+        steps: [
+          { m: `${S} = ${sp}${T}${h}`, n: `Swap ${V} for ${h}.`, k: 'eq' },
+          { m: `${S} = ${ans}`, k: 'eq' }] };
+    },
+  ];
+
+  function formula() {
+    const f = pick(FORMULAS)();
+    return Q(Object.assign({ kind: 'formula', prompt: 'Use the formula' }, f));
+  }
+
+  function pairSumDiff() {
+    const [p, q] = two(), big = R(5, 15), small = R(1, big - 1), s = big + small, d = big - small, askP = chance(0.6);
+    const A = askP ? p : q, ans = askP ? big : small;
+    return Q({ kind: 'pair-sd', unknown: A, prompt: 'Find ' + v(A), label: v(A) + ' =', answer: ans,
+      html: lines(`${v(p)}${P}${v(q)} = ${s}`, `${v(p)}${M}${v(q)} = ${d}`),
+      hint: `Find two numbers that add up to ${s}. Which pair is ${d} apart?`,
+      steps: [
+        { m: `${big}${P}${small} = ${s}`, n: `These two add up to ${s}.`, k: 'eq' },
+        { m: `${big}${M}${small} = ${d}`, n: `And they are ${d} apart.`, k: 'eq' },
+        { m: `${v(A)} = ${ans}`, n: askP ? `${v(p)} is the bigger number.` : `${v(q)} is the smaller number.`, k: 'eq' }] });
+  }
+
+  function pairProduct() {
+    let a = R(2, 9), b = R(2, 12);
+    while (b === a) b = R(2, 12);
+    const lo = Math.min(a, b), hi = Math.max(a, b), prod = lo * hi, sum = lo + hi, big = chance(0.6);
+    const pairs = [];
+    for (let i = 1; i * i <= prod; i++) if (prod % i === 0) pairs.push(i + T + prod / i);
+    const ans = big ? hi : lo;
+    return Q({ kind: 'pair-ps', prompt: big ? 'What is the bigger number?' : 'What is the smaller number?',
+      label: big ? 'Bigger =' : 'Smaller =', answer: ans,
+      ctx: `Two numbers multiply to make ${prod} and add up to ${sum}.`,
+      html: lines(`${v('a')}${T}${v('b')} = ${prod}`, `${v('a')}${P}${v('b')} = ${sum}`),
+      hint: `List the pairs that multiply to make ${prod}. Which pair adds up to ${sum}?`,
+      steps: [
+        { m: pairs.join(', '), n: `Pairs that multiply to make ${prod}.` },
+        { m: `${lo}${P}${hi} = ${sum}`, n: `This pair adds up to ${sum}.`, k: 'eq' },
+        { m: String(ans), n: `So the ${big ? 'bigger' : 'smaller'} number is ${ans}.`, k: 'val' }] });
+  }
+
+  function village() {
+    return choose([[3, subOne], [2, subTwo], [3, formula], [1, pairSumDiff], [1, pairProduct]])();
+  }
+
+  // ======================================================================
+  // Night 4: The Pub Gig. Sequences.
+  // ======================================================================
+  function arith(asc) {
+    if (asc) return { a: R(1, 30), d: R(2, 12) };
+    const d = -R(2, 9);
+    return { a: R(-d * 5 + 1, -d * 5 + 40), d };
+  }
+
+  function seqNext() {
+    const { a, d } = arith(chance(0.72));
+    const t = [0, 1, 2, 3].map((i) => a + i * d), ans = a + 4 * d, j = jumpText(d);
+    return Q({ kind: 'seq', prompt: 'What comes next?', label: BOX + ' =', answer: ans,
+      html: t.join(', ') + ', ' + BOX,
+      hint: 'What is the jump from one number to the next?',
+      steps: [
+        { m: j + ' each time', n: `${t[0]} to ${t[1]} is a jump of ${j}.` },
+        { m: `${t[3]}${d > 0 ? P : M}${Math.abs(d)} = ${ans}`, n: 'Do the same jump again.', k: 'eq' }] });
+  }
+
+  function seqGap() {
+    const { a, d } = arith(chance(0.7));
+    const t = [0, 1, 2, 3, 4].map((i) => a + i * d), k = R(1, 3), ans = t[k], j = jumpText(d);
+    const seen = k === 1 ? [2, 3] : [0, 1];
+    return Q({ kind: 'seq', prompt: 'Which number is missing?', label: BOX + ' =', answer: ans,
+      html: t.map((x, i) => (i === k ? BOX : x)).join(', '),
+      hint: 'Find the jump between two numbers you can see.',
+      steps: [
+        { m: j + ' each time', n: `${t[seen[0]]} to ${t[seen[1]]} is a jump of ${j}.` },
+        { m: `${t[k - 1]}${d > 0 ? P : M}${Math.abs(d)} = ${ans}`, n: 'Do one jump from the number before the gap.', k: 'eq' }] });
+  }
+
+  function seqTerm() {
+    const c = R(2, 9), b = R(-5, 10) || 3, N = pick([5, 6, 7, 8, 9, 10, 10, 12, 15, 20, 20, 50, 100]), ans = c * N + b, n = v('n');
+    return Q({ kind: 'seq-term', prompt: `What is the ${ord(N)} term?`, label: `Term ${N} =`, answer: ans, N,
+      html: `${n}th term = ${lin(c, n, b)}`,
+      hint: `Put ${n} = ${N} into the rule.`,
+      steps: [
+        { m: `${c}${T}${N}${sgn(b)}`, n: `Swap ${n} for ${N}.`, k: 'val' },
+        { m: `${c * N}${sgn(b)}`, n: 'Times first.', k: 'val' },
+        { m: String(ans), k: 'val' }] });
+  }
+
+  function seqRuleConst() {
+    const c = R(2, 9), b = R(1, 12), t = [1, 2, 3, 4].map((i) => c * i + b), n = v('n');
+    return Q({ kind: 'seq-rule', prompt: 'Finish the rule', label: BOX + ' =', answer: b,
+      html: lines(t.join(', ') + ', …', `${n}th term = ${c}${n}${P}${BOX}`),
+      hint: `The jump is ${c}, so the rule starts ${c}${n}. What do you add to ${c} to make ${t[0]}?`,
+      steps: [
+        { m: `${c}${T}1 = ${c}`, n: `The jump is +${c}, so the rule starts ${c}${n}. For the 1st term that gives ${c}.`, k: 'eq' },
+        { m: `${t[0]}${M}${c} = ${b}`, n: `The 1st term is ${t[0]}, so add ${b}.`, k: 'eq' },
+        { m: `${n}th term = ${c}${n}${P}${b}`, n: `Check: when ${n} = 2 it gives ${t[1]}.` }] });
+  }
+
+  function seqRuleCoef() {
+    const c = R(2, 9), b = R(1, 12), t = [1, 2, 3, 4].map((i) => c * i + b), n = v('n');
+    return Q({ kind: 'seq-rule', prompt: 'Finish the rule', label: BOX + ' =', answer: c,
+      html: lines(t.join(', ') + ', …', `${n}th term = ${BOX}${n}${P}${b}`),
+      hint: `The number in front of ${n} is the jump between the terms.`,
+      steps: [
+        { m: `${t[1]}${M}${t[0]} = ${c}`, n: `The jump is ${c} each time.`, k: 'eq' },
+        { m: `${n}th term = ${c}${n}${P}${b}`, n: `The number in front of ${n} is the jump. Check: ${c} ${TIMES} 1 + ${b} = ${t[0]}.` }] });
+  }
+
+  function seqStart() {
+    const a = R(1, 20), d = R(2, 9), N = R(4, 8);
+    const t = Array.from({ length: N }, (_, i) => a + i * d), ans = t[N - 1];
+    return Q({ kind: 'seq-start', prompt: `What is the ${ord(N)} number?`, label: `${ord(N)} =`, answer: ans, N,
+      ctx: `Start at ${a} and add ${d} each time.`,
+      html: `${a}, ${a + d}, …`,
+      hint: `Keep adding ${d} until you reach the ${ord(N)} number.`,
+      steps: [
+        { m: t.join(', '), n: `Keep adding ${d}.` },
+        { m: `${a}${P}${N - 1}${T}${d} = ${ans}`, n: `Quick way: the start plus ${N - 1} jumps of ${d}.`, k: 'eq' }] });
+  }
+
+  function pub() {
+    return choose([[3, seqNext], [2, seqGap], [2, seqTerm], [2, seqRuleConst], [1, seqRuleCoef], [1, seqStart]])();
+  }
+
+  // ======================================================================
+  // Night 5: Club Night. Two-step equations.
+  // ======================================================================
+  function club() {
+    const l = pick(LETTERS), X = v(l), L = X + ' =', prompt = 'Find ' + X;
+    return choose([
+      [4, () => {
+        const a = R(2, 9), s = R(1, 12), b = R(1, 20), c = a * s + b, flip = chance(0.25);
+        return Q({ kind: 'eq', unknown: l, prompt, label: L, answer: s,
+          html: flip ? `${b}${P}${a}${X} = ${c}` : `${a}${X}${P}${b} = ${c}`,
+          hint: `First undo the + ${b}. Then undo the ${TIMES} ${a}.`,
+          steps: [
+            { m: `${a}${X} = ${c - b}`, n: `Subtract ${b} from both sides.`, k: 'eq' },
+            { m: `${X} = ${s}`, n: `Divide both sides by ${a}.`, k: 'eq' }] });
+      }],
+      [3, () => {
+        const a = R(2, 9), s = R(1, 12), b = R(1, Math.min(20, a * s - 1)), c = a * s - b;
+        return Q({ kind: 'eq', unknown: l, prompt, label: L, answer: s,
+          html: `${a}${X}${M}${b} = ${c}`,
+          hint: `First undo the ${MINUS} ${b}. Then undo the ${TIMES} ${a}.`,
+          steps: [
+            { m: `${a}${X} = ${c + b}`, n: `Add ${b} to both sides.`, k: 'eq' },
+            { m: `${X} = ${s}`, n: `Divide both sides by ${a}.`, k: 'eq' }] });
+      }],
+      [2, () => {
+        const a = R(2, 6), q = R(2, 10), s = a * q, b = R(1, 12), c = q + b;
+        return Q({ kind: 'eq', unknown: l, prompt, label: L, answer: s,
+          html: `${frac(X, a)}${P}${b} = ${c}`,
+          hint: `${frac(X, a)} means ${X} ${DIV} ${a}. Undo the + ${b} first.`,
+          steps: [
+            { m: `${frac(X, a)} = ${q}`, n: `Subtract ${b} from both sides.`, k: 'eq' },
+            { m: `${X} = ${s}`, n: `Multiply both sides by ${a}.`, k: 'eq' }] });
+      }],
+      [1, () => {
+        const a = R(2, 6), q = R(3, 12), s = a * q, b = R(1, q - 1), c = q - b;
+        return Q({ kind: 'eq', unknown: l, prompt, label: L, answer: s,
+          html: `${frac(X, a)}${M}${b} = ${c}`,
+          hint: `${frac(X, a)} means ${X} ${DIV} ${a}. Undo the ${MINUS} ${b} first.`,
+          steps: [
+            { m: `${frac(X, a)} = ${q}`, n: `Add ${b} to both sides.`, k: 'eq' },
+            { m: `${X} = ${s}`, n: `Multiply both sides by ${a}.`, k: 'eq' }] });
+      }],
+      [1, () => {
+        const a = R(2, 9), s = R(1, 12), b = R(1, 20), c = a * s + b;
+        return Q({ kind: 'eq', unknown: l, prompt, label: L, answer: s,
+          html: `${c} = ${a}${X}${P}${b}`,
+          hint: `It works the same way round. Subtract ${b} from both sides.`,
+          steps: [
+            { m: `${c - b} = ${a}${X}`, n: `Subtract ${b} from both sides.`, k: 'eq' },
+            { m: `${X} = ${s}`, n: `Divide both sides by ${a}.`, k: 'eq' }] });
+      }],
+    ])();
+  }
+
+  // ======================================================================
+  // Night 6: The Theatre. Simplify, expand, factorise.
+  // ======================================================================
+  function collectOne() {
+    const l = pick(LETTERS), X = v(l);
+    for (;;) {
+      const n = chance(0.35) ? 4 : 3, cs = [R(2, 9)];
+      for (let i = 1; i < n; i++) cs.push(R(1, 7) * (chance(0.3) ? -1 : 1));
+      let run = 0, ok = true;
+      for (const c of cs) { run += c; if (run < 1) ok = false; }
+      if (!ok || run < 2 || run > 20) continue;
+      const sum = run;
+      const expr = term(cs[0], X) + cs.slice(1).map((c) => sterm(c, X)).join('');
+      const nums = cs[0] + cs.slice(1).map((c) => (c < 0 ? M : P) + Math.abs(c)).join('');
+      const one = cs.some((c) => Math.abs(c) === 1) ? ` ${X} on its own counts as 1${X}.` : '';
+      return Q({ kind: 'id', unknown: '□', prompt: 'Simplify', label: BOX + ' =', answer: sum,
+        html: `${expr} = ${BOX}${X}`,
+        hint: `They are all ${X} terms, so combine the numbers in front.${one}`,
+        steps: [
+          { m: `${nums} = ${sum}`, n: `Combine the numbers in front of each ${X}.${one}`, k: 'eq' },
+          { m: `${expr} = ${term(sum, X)}`, k: 'id' }] });
+    }
+  }
+
+  function collectTwo() {
+    const [p, q] = two(), Pv = v(p), Qv = v(q);
+    for (;;) {
+      const c1 = R(1, 8), c2 = R(1, 8) * (chance(0.25) ? -1 : 1);
+      const d1 = R(1, 8), d2 = R(1, 8) * (chance(0.25) ? -1 : 1);
+      const C = c1 + c2, Dd = d1 + d2;
+      if (C < 2 || Dd < 2) continue;
+      const expr = term(c1, Pv) + sterm(d1, Qv) + sterm(c2, Pv) + sterm(d2, Qv);
+      const askP = chance(0.5);
+      const rhs = askP ? `${BOX}${Pv}${sterm(Dd, Qv)}` : `${term(C, Pv)}${P}${BOX}${Qv}`;
+      return Q({ kind: 'id', unknown: '□', prompt: 'Simplify', label: BOX + ' =', answer: askP ? C : Dd,
+        html: `${expr} = ${rhs}`,
+        hint: `Collect the ${askP ? Pv : Qv} terms together.`,
+        steps: [
+          { m: `${term(c1, Pv)}${sterm(c2, Pv)} = ${term(C, Pv)}`, n: `Collect the ${Pv} terms.`, k: 'id' },
+          { m: `${term(d1, Qv)}${sterm(d2, Qv)} = ${term(Dd, Qv)}`, n: `Collect the ${Qv} terms.`, k: 'id' },
+          { m: `${expr} = ${term(C, Pv)}${sterm(Dd, Qv)}`, k: 'id' }] });
+    }
+  }
+
+  function expand() {
+    const l = pick(LETTERS), X = v(l), a = R(2, 9), b = R(1, 9), c = R(2, 5), f = R(0, 3);
+    const prompt = 'Expand the bracket', L = BOX + ' =', hint = `Multiply everything inside the bracket by ${a}.`;
+    if (f === 0 || f === 1) {
+      const s = f === 0 ? P : M;
+      return Q({ kind: 'id', unknown: '□', prompt, label: L, answer: a * b, hint,
+        html: `${a}(${X}${s}${b}) = ${a}${X}${s}${BOX}`,
+        steps: [
+          { m: `${a}${T}${X} = ${a}${X}`, n: `Multiply the first term by ${a}.`, k: 'id' },
+          { m: `${a}${T}${b} = ${a * b}`, n: 'Then the second term.', k: 'eq' },
+          { m: `${a}(${X}${s}${b}) = ${a}${X}${s}${a * b}`, k: 'id' }] });
+    }
+    if (f === 2) {
+      return Q({ kind: 'id', unknown: '□', prompt, label: L, answer: a * c, hint,
+        html: `${a}(${c}${X}${P}${b}) = ${BOX}${X}${P}${a * b}`,
+        steps: [
+          { m: `${a}${T}${c}${X} = ${a * c}${X}`, n: `Multiply the first term by ${a}.`, k: 'id' },
+          { m: `${a}${T}${b} = ${a * b}`, n: 'Then the second term.', k: 'eq' },
+          { m: `${a}(${c}${X}${P}${b}) = ${a * c}${X}${P}${a * b}`, k: 'id' }] });
+    }
+    return Q({ kind: 'id', unknown: '□', prompt, label: L, answer: a * b, hint,
+      html: `${a}(${c}${X}${M}${b}) = ${a * c}${X}${M}${BOX}`,
+      steps: [
+        { m: `${a}${T}${c}${X} = ${a * c}${X}`, n: `Multiply the first term by ${a}.`, k: 'id' },
+        { m: `${a}${T}${b} = ${a * b}`, n: 'Then the second term.', k: 'eq' },
+        { m: `${a}(${c}${X}${M}${b}) = ${a * c}${X}${M}${a * b}`, k: 'id' }] });
+  }
+
+  function factorise() {
+    const l = pick(LETTERS), X = v(l), L = BOX + ' =';
+    for (;;) {
+      const f = R(2, 6), c = R(1, 5), b = R(1, 9), form = R(0, 2);
+      if (gcd(c, b) !== 1) continue;
+      if (form === 0) {
+        return Q({ kind: 'id', unknown: '□', prompt: 'Factorise', label: L, answer: b,
+          html: `${f * c}${X}${P}${f * b} = ${f}(${term(c, X)}${P}${BOX})`,
+          hint: `What do you multiply ${f} by to get ${f * b}?`,
+          steps: [
+            { m: `${f}${T}${term(c, X)} = ${f * c}${X}`, n: 'The first part already works.', k: 'id' },
+            { m: `${f}${T}${b} = ${f * b}`, n: `${f} times what makes ${f * b}?`, k: 'eq' },
+            { m: `${f * c}${X}${P}${f * b} = ${f}(${term(c, X)}${P}${b})`, k: 'id' }] });
+      }
+      if (c < 2) continue;
+      const s = form === 2 ? M : P;
+      return Q({ kind: 'id', unknown: '□', prompt: 'Factorise', label: L, answer: f,
+        html: `${f * c}${X}${s}${f * b} = ${BOX}(${c}${X}${s}${b})`,
+        hint: `What times ${c}${X} makes ${f * c}${X}?`,
+        steps: [
+          { m: `${f * c}${D}${c} = ${f}`, n: `${f} ${TIMES} ${c}${X} makes ${f * c}${X}.`, k: 'eq' },
+          { m: `${f}${T}${b} = ${f * b}`, n: 'Check the second term works too.', k: 'eq' },
+          { m: `${f * c}${X}${s}${f * b} = ${f}(${c}${X}${s}${b})`, k: 'id' }] });
+    }
+  }
+
+  function multiplyTerms() {
+    const [p, q] = two(), Pv = v(p), Qv = v(q), a = R(2, 9), c = R(2, 9), f = R(0, 2), L = BOX + ' =';
+    if (f === 0) {
+      return Q({ kind: 'id', unknown: '□', prompt: 'Simplify', label: L, answer: a * c,
+        html: `${a}${T}${c}${Pv} = ${BOX}${Pv}`,
+        hint: 'Multiply the numbers. The letter stays.',
+        steps: [
+          { m: `${a}${T}${c} = ${a * c}`, n: 'Multiply the numbers.', k: 'eq' },
+          { m: `${a}${T}${c}${Pv} = ${a * c}${Pv}`, k: 'id' }] });
+    }
+    if (f === 1) {
+      return Q({ kind: 'id', unknown: '□', prompt: 'Simplify', label: L, answer: a * c,
+        html: `${a}${Pv}${T}${c}${Qv} = ${BOX}${Pv}${Qv}`,
+        hint: 'Multiply the numbers, then put the letters together.',
+        steps: [
+          { m: `${a}${T}${c} = ${a * c}`, n: 'Multiply the numbers, then put the letters together.', k: 'eq' },
+          { m: `${a}${Pv}${T}${c}${Qv} = ${a * c}${Pv}${Qv}`, k: 'id' }] });
+    }
+    return Q({ kind: 'id', unknown: '□', prompt: 'Simplify', label: L, answer: c,
+      html: `${a * c}${Pv}${D}${a} = ${BOX}${Pv}`,
+      hint: 'Divide the number part. The letter stays.',
+      steps: [
+        { m: `${a * c}${D}${a} = ${c}`, n: 'Divide the number part.', k: 'eq' },
+        { m: `${a * c}${Pv}${D}${a} = ${c}${Pv}`, k: 'id' }] });
+  }
+
+  function theatre() {
+    return choose([[3, collectOne], [2, collectTwo], [3, expand], [2, factorise], [1, multiplyTerms]])();
+  }
+
+  // ======================================================================
+  // Night 7: The Arena. Equations with brackets.
+  // ======================================================================
+  function arena() {
+    const l = pick(LETTERS), X = v(l), L = X + ' =', prompt = 'Find ' + X;
+    return choose([
+      [3, () => {
+        const a = R(2, 6), s = R(1, 12), b = R(1, 9), c = a * (s + b);
+        return Q({ kind: 'eq', unknown: l, prompt, label: L, answer: s,
+          html: `${a}(${X}${P}${b}) = ${c}`,
+          hint: `Divide both sides by ${a} first. Or expand the bracket.`,
+          steps: [
+            { m: `${X}${P}${b} = ${s + b}`, n: `Divide both sides by ${a}.`, k: 'eq' },
+            { m: `${X} = ${s}`, n: `Subtract ${b} from both sides.`, k: 'eq' }] });
+      }],
+      [2, () => {
+        const a = R(2, 6), b = R(1, 9), s = R(b + 1, b + 12), c = a * (s - b);
+        return Q({ kind: 'eq', unknown: l, prompt, label: L, answer: s,
+          html: `${a}(${X}${M}${b}) = ${c}`,
+          hint: `Divide both sides by ${a} first. Or expand the bracket.`,
+          steps: [
+            { m: `${X}${M}${b} = ${s - b}`, n: `Divide both sides by ${a}.`, k: 'eq' },
+            { m: `${X} = ${s}`, n: `Add ${b} to both sides.`, k: 'eq' }] });
+      }],
+      [2, () => {
+        const a = R(2, 5), c = R(2, 4), s = R(1, 10), b = R(1, 9), d = a * (c * s + b);
+        return Q({ kind: 'eq', unknown: l, prompt, label: L, answer: s,
+          html: `${a}(${c}${X}${P}${b}) = ${d}`,
+          hint: `Divide both sides by ${a} first. Then it is a two-step equation.`,
+          steps: [
+            { m: `${c}${X}${P}${b} = ${c * s + b}`, n: `Divide both sides by ${a}.`, k: 'eq' },
+            { m: `${c}${X} = ${c * s}`, n: `Subtract ${b} from both sides.`, k: 'eq' },
+            { m: `${X} = ${s}`, n: `Divide both sides by ${c}.`, k: 'eq' }] });
+      }],
+      [2, () => {
+        const a = R(2, 6), q = R(2, 8), b = R(1, Math.min(9, a * q - 1)), s = a * q - b;
+        return Q({ kind: 'eq', unknown: l, prompt, label: L, answer: s,
+          html: `${frac(X + P + b, a)} = ${q}`,
+          hint: `The whole top is divided by ${a}. Multiply both sides by ${a} first.`,
+          steps: [
+            { m: `${X}${P}${b} = ${a * q}`, n: `Multiply both sides by ${a}.`, k: 'eq' },
+            { m: `${X} = ${s}`, n: `Subtract ${b} from both sides.`, k: 'eq' }] });
+      }],
+      [1, () => {
+        const a = R(2, 5), b = R(1, 6), s = R(1, 10), e = R(1, 12), d = a * (s + b) + e;
+        return Q({ kind: 'eq', unknown: l, prompt, label: L, answer: s,
+          html: `${a}(${X}${P}${b})${P}${e} = ${d}`,
+          hint: `Get the bracket on its own first. Subtract ${e} from both sides.`,
+          steps: [
+            { m: `${a}(${X}${P}${b}) = ${d - e}`, n: `Subtract ${e} from both sides.`, k: 'eq' },
+            { m: `${X}${P}${b} = ${s + b}`, n: `Divide both sides by ${a}.`, k: 'eq' },
+            { m: `${X} = ${s}`, n: `Subtract ${b} from both sides.`, k: 'eq' }] });
+      }],
+      [2, () => {
+        const p = R(2, 4), q = R(2, 4), a = R(1, 6), b = R(1, 6), s = R(1, 10), k = p + q, e = p * a + q * b, c = k * s + e;
+        return Q({ kind: 'eq', unknown: l, prompt, label: L, answer: s,
+          html: `${p}(${X}${P}${a})${P}${q}(${X}${P}${b}) = ${c}`,
+          hint: 'Expand both brackets, then collect like terms.',
+          steps: [
+            { m: `${p}${X}${P}${p * a}${P}${q}${X}${P}${q * b} = ${c}`, n: 'Expand both brackets.', k: 'eq' },
+            { m: `${k}${X}${P}${e} = ${c}`, n: 'Collect like terms.', k: 'eq' },
+            { m: `${k}${X} = ${c - e}`, n: `Subtract ${e} from both sides.`, k: 'eq' },
+            { m: `${X} = ${s}`, n: `Divide both sides by ${k}.`, k: 'eq' }] });
+      }],
+    ])();
+  }
+
+  // ======================================================================
+  // Night 8: Festival Main Stage. Letters on both sides.
+  // ======================================================================
+  function bothPlus(l, X) {
+    const c = R(1, 6), k = R(1, 5), a = c + k, s = R(1, 12), b = R(1, 15), d = k * s + b;
+    const steps = [
+      { m: `${term(k, X)}${P}${b} = ${d}`, n: `Subtract ${term(c, X)} from both sides.`, k: 'eq' },
+      { m: `${term(k, X)} = ${d - b}`, n: `Subtract ${b} from both sides.`, k: 'eq' }];
+    if (k > 1) steps.push({ m: `${X} = ${s}`, n: `Divide both sides by ${k}.`, k: 'eq' });
+    return Q({ kind: 'eq', unknown: l, prompt: 'Find ' + X, label: X + ' =', answer: s,
+      html: `${a}${X}${P}${b} = ${term(c, X)}${P}${d}`,
+      hint: `Get the ${X} terms on one side. Subtract ${term(c, X)} from both sides.`, steps });
+  }
+  function bothMinus(l, X) {
+    const c = R(1, 6), k = R(1, 5), a = c + k, s = R(2, 12), b = R(1, Math.min(15, k * s - 1)), d = k * s - b;
+    const steps = [
+      { m: `${term(k, X)}${M}${b} = ${d}`, n: `Subtract ${term(c, X)} from both sides.`, k: 'eq' },
+      { m: `${term(k, X)} = ${d + b}`, n: `Add ${b} to both sides.`, k: 'eq' }];
+    if (k > 1) steps.push({ m: `${X} = ${s}`, n: `Divide both sides by ${k}.`, k: 'eq' });
+    return Q({ kind: 'eq', unknown: l, prompt: 'Find ' + X, label: X + ' =', answer: s,
+      html: `${a}${X}${M}${b} = ${term(c, X)}${P}${d}`,
+      hint: `Get the ${X} terms on one side. Subtract ${term(c, X)} from both sides.`, steps });
+  }
+  function rightBigger(l, X) {
+    const c = R(1, 5), k = R(1, 4), a = c + k, s = R(1, 12), b = R(1, 12), d = k * s + b;
+    return Q({ kind: 'eq', unknown: l, prompt: 'Find ' + X, label: X + ' =', answer: s,
+      html: `${term(c, X)}${P}${d} = ${a}${X}${P}${b}`,
+      hint: `There are more ${X}s on the right. Subtract ${term(c, X)} from both sides.`,
+      steps: [
+        { m: `${d} = ${term(k, X)}${P}${b}`, n: `Subtract ${term(c, X)} from both sides.`, k: 'eq' },
+        { m: `${d - b} = ${term(k, X)}`, n: `Subtract ${b} from both sides.`, k: 'eq' },
+        { m: `${X} = ${s}`, n: k > 1 ? `Divide both sides by ${k}.` : 'Swap the sides round.', k: 'eq' }] });
+  }
+  function bracketBoth(l, X) {
+    const c = R(1, 4), k = R(1, 3), a = c + k, b = R(1, 6), s = R(1, 10), d = k * s + a * b;
+    const steps = [
+      { m: `${a}${X}${P}${a * b} = ${term(c, X)}${P}${d}`, n: 'Expand the bracket.', k: 'eq' },
+      { m: `${term(k, X)}${P}${a * b} = ${d}`, n: `Subtract ${term(c, X)} from both sides.`, k: 'eq' },
+      { m: `${term(k, X)} = ${d - a * b}`, n: `Subtract ${a * b} from both sides.`, k: 'eq' }];
+    if (k > 1) steps.push({ m: `${X} = ${s}`, n: `Divide both sides by ${k}.`, k: 'eq' });
+    return Q({ kind: 'eq', unknown: l, prompt: 'Find ' + X, label: X + ' =', answer: s,
+      html: `${a}(${X}${P}${b}) = ${term(c, X)}${P}${d}`,
+      hint: 'Expand the bracket first. Then get the letters on one side.', steps });
+  }
+  function festival() {
+    const l = pick(LETTERS), X = v(l);
+    return choose([
+      [3, () => bothPlus(l, X)], [2, () => bothMinus(l, X)],
+      [2, () => rightBigger(l, X)], [2, () => bracketBoth(l, X)]])();
+  }
+
+  // ======================================================================
+  // Night 9: The Stadium. Negatives, powers, inequalities, everything.
+  // ======================================================================
+  function negOneStep() {
+    const l = pick(LETTERS), X = v(l), L = X + ' =', prompt = 'Find ' + X, f = R(0, 2);
+    if (f === 0) {
+      const s = -R(1, 12), a = R(2, 15), c = s + a;
+      return Q({ kind: 'eq', unknown: l, prompt, label: L, answer: s,
+        html: `${X}${P}${a} = ${num(c)}`,
+        hint: `Subtract ${a} from both sides. The answer can be below zero.`,
+        steps: [
+          { m: `${X} = ${num(c)}${M}${a}`, n: `Subtract ${a} from both sides.`, k: 'eq' },
+          { m: `${X} = ${num(s)}`, n: c >= 0 ? `Counting back ${a} from ${c} takes you below zero.` : 'Count back further below zero.', k: 'eq' }] });
+    }
+    if (f === 1) {
+      const c = -R(1, 12), a = R(2, 12), s = c + a;
+      return Q({ kind: 'eq', unknown: l, prompt, label: L, answer: s,
+        html: `${X}${M}${a} = ${num(c)}`,
+        hint: `Add ${a} to both sides.`,
+        steps: [
+          { m: `${X} = ${num(c)}${P}${a}`, n: `Add ${a} to both sides.`, k: 'eq' },
+          { m: `${X} = ${num(s)}`, n: `Count up ${a} from ${num(c)}.`, k: 'eq' }] });
+    }
+    const a = R(2, 9), s = -R(2, 10), c = a * s;
+    return Q({ kind: 'eq', unknown: l, prompt, label: L, answer: s,
+      html: `${a}${X} = ${num(c)}`,
+      hint: `Divide both sides by ${a}. A negative divided by a positive is negative.`,
+      steps: [
+        { m: `${X} = ${num(c)}${D}${a}`, n: `Divide both sides by ${a}.`, k: 'eq' },
+        { m: `${X} = ${num(s)}`, n: 'A negative divided by a positive is negative.', k: 'eq' }] });
+  }
+
+  function negTwoStep() {
+    const l = pick(LETTERS), X = v(l), a = R(2, 6), s = -R(1, 9), b = R(1, 30), c = a * s + b;
+    return Q({ kind: 'eq', unknown: l, prompt: 'Find ' + X, label: X + ' =', answer: s,
+      html: `${a}${X}${P}${b} = ${num(c)}`,
+      hint: `Subtract ${b} from both sides, then divide by ${a}. Watch out for a negative.`,
+      steps: [
+        { m: `${a}${X} = ${num(c - b)}`, n: `Subtract ${b} from both sides.`, k: 'eq' },
+        { m: `${X} = ${num(s)}`, n: `Divide both sides by ${a}.`, k: 'eq' }] });
+  }
+
+  function negSub() {
+    const l = pick(LETTERS), X = v(l), a = R(2, 6), val = -R(1, 8), b = R(1, 20), ans = a * val + b;
+    return Q({ kind: 'eval', prompt: 'Work it out', given: `If ${X} = ${num(val)}`, label: '=', answer: ans,
+      html: `${a}${X}${P}${b}`,
+      hint: `${a}${X} means ${a} ${TIMES} ${X}. A positive times a negative is negative.`,
+      steps: [
+        { m: `${a}${T}(${num(val)})${P}${b}`, n: `Swap ${X} for ${num(val)}.`, k: 'val' },
+        { m: `${num(a * val)}${P}${b}`, n: `${a} ${TIMES} ${num(val)} = ${num(a * val)}`, k: 'val' },
+        { m: num(ans), k: 'val' }] });
+  }
+
+  function powers() {
+    const l = pick(LETTERS), X = v(l), f = R(0, 2);
+    if (f === 0) {
+      const val = R(2, 9);
+      let b = R(1, 20) * (chance(0.3) ? -1 : 1);
+      if (val * val + b <= 0) b = Math.abs(b);
+      const ans = val * val + b;
+      return Q({ kind: 'eval', prompt: 'Work it out', given: `If ${X} = ${val}`, label: '=', answer: ans,
+        html: sq(X) + sgn(b),
+        hint: `${sq(X)} means ${X} ${TIMES} ${X}, not 2 ${TIMES} ${X}.`,
+        steps: [
+          { m: `${val}${T}${val}${sgn(b)}`, n: `${sq(X)} means ${X} ${TIMES} ${X}.`, k: 'val' },
+          { m: `${val * val}${sgn(b)}`, k: 'val' },
+          { m: String(ans), k: 'val' }] });
+    }
+    if (f === 1) {
+      const val = R(2, 6), c = R(2, 5), ans = c * val * val;
+      return Q({ kind: 'eval', prompt: 'Work it out', given: `If ${X} = ${val}`, label: '=', answer: ans,
+        html: c + sq(X),
+        hint: `Square ${X} first, then times by ${c}.`,
+        steps: [
+          { m: `${c}${T}${val}${T}${val}`, n: `Square ${X} first, then times by ${c}.`, k: 'val' },
+          { m: `${c}${T}${val * val}`, k: 'val' },
+          { m: String(ans), k: 'val' }] });
+    }
+    const val = -R(2, 9), b = R(1, 15), ans = val * val + b;
+    return Q({ kind: 'eval', prompt: 'Work it out', given: `If ${X} = ${num(val)}`, label: '=', answer: ans,
+      html: sq(X) + P + b,
+      hint: 'A negative times a negative is positive.',
+      steps: [
+        { m: `(${num(val)})${T}(${num(val)})${P}${b}`, n: `${sq(X)} means ${X} ${TIMES} ${X}.`, k: 'val' },
+        { m: `${val * val}${P}${b}`, n: 'A negative times a negative is positive.', k: 'val' },
+        { m: String(ans), k: 'val' }] });
+  }
+
+  function inequality() {
+    const l = pick(LETTERS), X = v(l), a = R(2, 5), k = R(2, 9), r = R(0, a - 1);
+    if (chance(0.5)) {
+      const b = R(1, 12), c = a * k + r + b, ans = r === 0 ? k - 1 : k;
+      return Q({ kind: 'ineq-max', unknown: l, prompt: `Biggest whole number ${X} that makes this true`, label: X + ' =', answer: ans,
+        html: `${a}${X}${P}${b} < ${c}`,
+        hint: 'Solve it like an equation, then pick the biggest whole number that still fits.',
+        steps: [
+          { m: `${a}${X} < ${c - b}`, n: `Subtract ${b} from both sides.` },
+          r === 0
+            ? { m: `${X} < ${k}`, n: `Divide both sides by ${a}.` }
+            : { m: `${c - b}${D}${a} = ${k} r ${r}`, n: `${a} ${TIMES} ${k} = ${a * k} fits. ${a} ${TIMES} ${k + 1} = ${a * (k + 1)} is too big.` },
+          { m: `${X} = ${ans}`, n: r === 0 ? `${X} must be less than ${k}, so the biggest whole number is ${k - 1}.` : `So the biggest whole number is ${k}.`, k: 'eq' }] });
+    }
+    const b = R(1, Math.min(12, a * k + r - 1)), c = a * k + r - b, ans = k + 1;
+    return Q({ kind: 'ineq-min', unknown: l, prompt: `Smallest whole number ${X} that makes this true`, label: X + ' =', answer: ans,
+      html: `${a}${X}${M}${b} > ${c}`,
+      hint: 'Solve it like an equation, then pick the smallest whole number that is bigger.',
+      steps: [
+        { m: `${a}${X} > ${c + b}`, n: `Add ${b} to both sides.` },
+        r === 0
+          ? { m: `${X} > ${k}`, n: `Divide both sides by ${a}.` }
+          : { m: `${c + b}${D}${a} = ${k} r ${r}`, n: `${a} ${TIMES} ${k} = ${a * k} is too small.` },
+        { m: `${X} = ${ans}`, n: `The smallest whole number that works is ${ans}.`, k: 'eq' }] });
+  }
+
+  function bothNeg() {
+    const l = pick(LETTERS), X = v(l), c = R(1, 5), k = R(1, 4), a = c + k, s = -R(1, 8), b = R(1, 20), d = k * s + b;
+    const steps = [
+      { m: `${term(k, X)}${P}${b} = ${num(d)}`, n: `Subtract ${term(c, X)} from both sides.`, k: 'eq' },
+      { m: `${term(k, X)} = ${num(d - b)}`, n: `Subtract ${b} from both sides.`, k: 'eq' }];
+    if (k > 1) steps.push({ m: `${X} = ${num(s)}`, n: `Divide both sides by ${k}.`, k: 'eq' });
+    return Q({ kind: 'eq', unknown: l, prompt: 'Find ' + X, label: X + ' =', answer: s,
+      html: `${a}${X}${P}${b} = ${term(c, X)}${d === 0 ? '' : sgn(d)}`,
+      hint: `Get the ${X} terms on one side first. The answer is below zero.`, steps });
+  }
+
+  function stadium() {
+    return choose([
+      [2, negOneStep], [2, negTwoStep], [1.5, negSub], [1.5, powers], [1.5, inequality], [1.5, bothNeg],
+      [1, arena], [1, festival], [1, theatre], [0.5, pairProduct]])();
+  }
+
+  // ======================================================================
+  // The tour
+  // ======================================================================
+  const VENUES = [
+    { id: 'bedroom', name: 'Kart Club Circuit', skill: 'Missing numbers', years: 'Year 3-5', unlockYear: 5,
+      secs: 60, picks: [6, 11, 16], gen: bedroom,
+      blurb: 'Warm up your fingers. Find the number hiding in the box.',
+      example: `${BOX}${P}7 = 15` },
+    { id: 'garage', name: 'Harbour Sprint', skill: 'Letters for numbers', years: 'Year 6', unlockYear: 6,
+      secs: 60, picks: [5, 10, 14], gen: garage,
+      blurb: 'The same puzzles with a new look. A letter stands for the missing number.',
+      example: `${v('n')}${P}8 = 15` },
+    { id: 'hall', name: 'Countryside Rally', skill: 'Formulae and two-number puzzles', years: 'Year 6', unlockYear: 6,
+      secs: 90, picks: [4, 8, 12], gen: village,
+      blurb: 'Swap letters for numbers, use formulae and crack two-number puzzles.',
+      example: `3${v('a')}${P}2 when ${v('a')} = 4` },
+    { id: 'pub', name: 'Canyon Run', skill: 'Sequences and nth term rules', years: 'Year 6-8', unlockYear: 7,
+      secs: 90, picks: [4, 8, 12], gen: pub,
+      blurb: 'Spot the jump, find the missing numbers and use nth term rules.',
+      example: `5, 9, 13, 17, ${BOX}` },
+    { id: 'club', name: 'Mountain Pass', skill: 'Two-step equations', years: 'Year 6-8', unlockYear: 7,
+      secs: 90, picks: [4, 8, 12], gen: club,
+      blurb: 'Undo two things to get the letter on its own.',
+      example: `3${v('x')}${P}5 = 20` },
+    { id: 'theatre', name: 'City Streets', skill: 'Simplify, expand and factorise', years: 'Year 7', unlockYear: 7,
+      secs: 90, picks: [5, 9, 13], gen: theatre,
+      blurb: 'Collect like terms, multiply out brackets and put them back in.',
+      example: `3(${v('x')}${P}4) = 3${v('x')}${P}${BOX}` },
+    { id: 'arena', name: 'Neon Night', skill: 'Equations with brackets', years: 'Year 8', unlockYear: 8,
+      secs: 120, picks: [4, 7, 10], gen: arena,
+      blurb: 'Brackets, fractions and longer equations.',
+      example: `3(${v('x')}${P}2) = 21` },
+    { id: 'festival', name: 'Glacier Grand Prix', skill: 'Letters on both sides', years: 'Year 8-9', unlockYear: 8,
+      secs: 120, picks: [3, 6, 9], gen: festival,
+      blurb: 'Get all the letters on one side, then solve.',
+      example: `5${v('x')}${P}3 = 2${v('x')}${P}15` },
+    { id: 'stadium', name: 'Volcano Ring', skill: 'Negatives, powers and the lot', years: 'Year 9', unlockYear: 9,
+      secs: 120, picks: [4, 8, 12], gen: stadium, negatives: true,
+      blurb: 'The big one. Some answers are below zero, so you will need the minus key.',
+      example: `2${v('x')}${P}11 = 3` },
+  ];
+
+  function generate(index, recent) {
+    const vn = VENUES[index];
+    let q = vn.gen();
+    for (let i = 0; i < 12 && recent && recent.indexOf(q.key) !== -1; i++) q = vn.gen();
+    return q;
+  }
+
+  const API = { VENUES, generate, seed, unseed, num, v, BOX, MINUS, TIMES };
+  if (typeof module !== 'undefined' && module.exports) module.exports = API;
+  else root.RTUQ = API;
+})(typeof window !== 'undefined' ? window : this);
+
+</script>
+<script>
+/* Solve for Speed: race physics, pace cars and rivals. Pure functions, no DOM. */
+(function (root) {
+  'use strict';
+  const PHYS = { VC: 10, TAU: 2.2, BOOST: 11, NV: 24, NT: 3, CAP: 34, SPIN: 1.2 };
+
+  // Vehicle stats run 1 to 5. A standard car (all 3s) is the baseline the medal times use.
+  function vstats(s) {
+    return {
+      cruise: PHYS.VC * (0.97 + 0.015 * (s.speed - 1)),
+      boost: PHYS.BOOST * (0.92 + 0.04 * (s.boost - 1)),
+      spin: PHYS.SPIN * (2 - 0.33 * (s.grip - 1)),
+      keep: 0.15 * (s.grip - 1),
+      drain: 0.45 - 0.08 * (s.grip - 1),
+      fill: 0.2 + 0.025 * (s.nitro - 1),
+    };
+  }
+  const STD = vstats({ speed: 3, boost: 3, grip: 3, nitro: 3 });
+  const REF_RATE = 11 / 60;
+  const combo = (streak) => (streak >= 7 ? 1.6 : streak >= 5 ? 1.4 : streak >= 3 ? 1.2 : 1);
+
+  // power: how much each right answer is worth on this track. Harder tracks have fewer, harder
+  // questions, so each answer keeps the boost going longer and fills nitro faster.
+  // Everyone starts from a standstill and launches off the line when the lights go green.
+  function racer(st, d, power) { const k = power || 1; return { d: d || 0, v: 0, launch: true, streak: 0, nitro: 0, nitroT: 0, spinT: 0, slip: false, st, finishT: 0, done: false,
+    tau: PHYS.TAU * k, nt: PHYS.NT * Math.sqrt(k), fill: st.fill * Math.min(2, Math.pow(k, 0.6)) }; }
+  function step(r, dt) {
+    const st = r.st;
+    let target = st.cruise * (r.slip ? 1.1 : 1), tau = r.tau;
+    if (r.launch) { if (r.v >= st.cruise * 0.97) r.launch = false; else tau = 0.7; }
+    if (r.nitroT > 0) { target = st.cruise + PHYS.NV; tau = 0.35; r.nitroT -= dt; }
+    else if (r.spinT > 0) { target = st.cruise * 0.35; tau = 0.3; r.spinT -= dt; r.launch = false; }
+    r.v += (target - r.v) * (1 - Math.exp(-dt / tau));
+    r.d += r.v * dt;
+  }
+  function hit(r) { r.streak++; r.v = Math.min(r.st.cruise + PHYS.CAP, r.v + r.st.boost * combo(r.streak)); r.nitro = Math.min(1, r.nitro + r.fill); }
+  // Grip is forgiveness: grippy vehicles spin for less time, keep part of their combo and lose less nitro.
+  function miss(r) { r.streak = Math.floor(r.streak * r.st.keep); r.spinT = r.st.spin; r.nitro = Math.max(0, r.nitro - r.st.drain); }
+  function nitro(r) { if (r.nitro < 1 || r.nitroT > 0) return false; r.nitro = 0; r.nitroT = r.nt; return true; }
+
+  // An ideal driver who answers correctly at a steady rate and fires nitro as soon as it fills.
+  function pace(rate, L, maxT, power) {
+    const r = racer(STD, 0, power), pts = [0], dt = 0.05;
+    let t = 0, next = 1 / rate, acc = 0;
+    while ((L ? r.d < L : t < maxT) && t < 900) {
+      if (t >= next - 1e-9) { hit(r); nitro(r); next += 1 / rate; }
+      step(r, dt); t += dt; acc += dt;
+      if (acc >= 0.1 - 1e-9) { acc = 0; pts.push(r.d); }
+    }
+    return { pts, T: t, D: r.d };
+  }
+  function distAt(c, t) {
+    const i = t / 0.1, k = Math.floor(i);
+    if (k >= c.pts.length - 1) return c.pts[c.pts.length - 1];
+    if (k < 0) return 0;
+    return c.pts[k] + (c.pts[k + 1] - c.pts[k]) * (i - k);
+  }
+  function timeAt(c, d) {
+    let lo = 0, hi = c.pts.length - 1;
+    if (d >= c.pts[hi]) return hi * 0.1;
+    while (hi - lo > 1) { const m = (lo + hi) >> 1; if (c.pts[m] < d) lo = m; else hi = m; }
+    const a = c.pts[lo], b = c.pts[hi];
+    return (lo + (b > a ? (d - a) / (b - a) : 0)) * 0.1;
+  }
+
+  // Track length and medal times from the level's old gig targets: picks[k] right answers in secs seconds.
+  function setup(venue) {
+    const secs = venue.secs, rates = venue.picks.map((p) => p / secs);
+    const power = Math.max(1, Math.min(4, REF_RATE / rates[1]));
+    const L = Math.round(pace(rates[1], 0, secs, power).D / 10) * 10;
+    const curves = rates.map((r) => pace(r, L, 0, power));
+    const gold = curves[2].T * 1.06, silver = curves[1].T * 1.12, bronze = curves[0].T * 1.15;
+    return { L, rates, power, curves: { gold: curves[2], silver: curves[1], bronze: curves[0] },
+      targets: { gold: Math.ceil(gold * 10) / 10, silver: Math.ceil(silver * 10) / 10, bronze: Math.ceil(bronze * 10) / 10 } };
+  }
+
+  // Rivals answer at a share of the silver rate, with 90% accuracy and a little rubber band so the pack stays close.
+  const RIVAL_PACE = [0.5, 0.7, 0.9, 1.1, 1.38];
+  function rivalThink(ai, t, gapToPlayer, rand) {
+    if (t < ai.next) return null;
+    let mult = 1;
+    if (gapToPlayer > 60) mult = 0.82; else if (gapToPlayer < -60) mult = 1.18;
+    ai.next = t + (1 / (ai.rate * mult)) * (0.55 + rand() * 0.9);
+    if (rand() < ai.acc) { hit(ai); if (ai.nitro >= 1 && rand() < 0.6) { nitro(ai); return 'nitro'; } return 'hit'; }
+    miss(ai); return 'miss';
+  }
+
+  const API = { PHYS, vstats, STD, combo, racer, step, hit, miss, nitro, pace, distAt, timeAt, setup, RIVAL_PACE, rivalThink };
+  if (typeof module !== 'undefined' && module.exports) module.exports = API;
+  else root.SFSP = API;
+})(typeof window !== 'undefined' ? window : this);
+
+</script>
+<script>
+(function () {
+  'use strict';
+  const QB = window.RTUQ, VEN = QB.VENUES, num = QB.num, PH = window.SFSP;
+  const $ = (s) => document.querySelector(s);
+  const $$ = (s, el) => Array.from((el || document).querySelectorAll(s));
+  const pickR = (a) => a[Math.floor(Math.random() * a.length)];
+  const fmt = (n) => Number(n).toLocaleString('en-GB');
+  const clock = (s) => { s = Math.max(0, s); return Math.floor(s / 60) + ':' + (s % 60).toFixed(1).padStart(4, '0'); };
+  const ord = (n) => n + ({ 1: 'st', 2: 'nd', 3: 'rd' }[n] || 'th');
+  const reduceMotion = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  let uid = 0;
+
+  // ------------------------------------------------------------ the tracks
+  const TRACKS = [
+    { name: 'Kart Club Circuit', blurb: 'A sunny club track to warm up on. Find the number hiding in each box.', sky: ['#4fbaff', '#d8f2ff'], sun: { x: 0.8, y: 0.35, c: '#fff6c4' }, far: 'hills', farC: ['#a6d886', '#79bb5c'], mid: 'trees', ground: '#63bd4e', road: '#4b505c', kerb: ['#e63946', '#ffffff'], verge: '#4fa63e', line: '#f4f6fa' },
+    { name: 'Harbour Sprint', blurb: 'Flat out along the seafront. Now a letter stands for the missing number.', sky: ['#3d9cf0', '#ffe1b0'], sun: { x: 0.18, y: 0.62, c: '#ffe7a3' }, far: 'sea', farC: ['#2b86cc', '#1c66a8'], mid: 'palms', ground: '#eccb85', road: '#575d6a', kerb: ['#2f6bff', '#ffffff'], verge: '#d9b86f', line: '#f4f6fa' },
+    { name: 'Countryside Rally', blurb: 'Gravel lanes through the pine woods. Use formulae and crack two-number puzzles.', sky: ['#6fbdff', '#eaf7ff'], far: 'hills', farC: ['#8cbd66', '#5f9446'], mid: 'pines', ground: '#6fb453', road: '#8d7150', kerb: ['#ffd23f', '#1b1d26'], verge: '#5c9a43', line: '#ecdcc0', dirt: true },
+    { name: 'Canyon Run', blurb: 'Red rock and cactus country. Spot the pattern and use nth term rules.', sky: ['#ff8a4c', '#ffd9a6'], sun: { x: 0.72, y: 0.6, c: '#fff0c4' }, far: 'mesa', farC: ['#c4562f', '#9c3f22'], mid: 'cacti', ground: '#e4a560', road: '#705545', kerb: ['#ff3b3b', '#ffffff'], verge: '#d18f4f', line: '#f7e2c4' },
+    { name: 'Mountain Pass', blurb: 'Hairpins up among the snowy peaks. Undo two steps to find the letter.', sky: ['#7fb0ff', '#edf3ff'], far: 'peaks', farC: ['#8f9bb8', '#707d9b'], mid: 'pines', dark: true, ground: '#78a55c', road: '#40444e', kerb: ['#e63946', '#ffffff'], verge: '#638f4a', line: '#f4f6fa' },
+    { name: 'City Streets', blurb: 'A street race between the tower blocks. Simplify, expand and factorise.', sky: ['#8ccfff', '#f2f8ff'], far: 'skyline', farC: ['#a7b7d2', '#8c9dbd'], mid: 'buildings', ground: '#a6acb8', road: '#3b3f49', kerb: ['#ffd23f', '#2d3038'], verge: '#8e95a1', line: '#f4f6fa' },
+    { name: 'Neon Night', blurb: 'The city after dark, every sign glowing. Equations with brackets.', sky: ['#07061f', '#3a1f6e'], stars: true, moon: true, far: 'skyline', farC: ['#1d1744', '#140f33'], night: true, mid: 'neon', ground: '#1b1730', road: '#1d1d29', kerb: ['#ff4fa3', '#28e0ff'], verge: '#15122a', line: '#28e0ff', glow: true },
+    { name: 'Glacier Grand Prix', blurb: 'Walls of ice under the northern lights. Letters on both sides.', sky: ['#0f2450', '#7fcfff'], stars: true, aurora: true, far: 'ice', farC: ['#d3ebff', '#a9cdf0'], mid: 'crystals', ground: '#eef7ff', road: '#5a6a80', kerb: ['#28e0ff', '#ffffff'], verge: '#dcecfb', line: '#f4f6fa' },
+    { name: 'Volcano Ring', blurb: 'Round the rim of a live volcano, where answers can drop below zero.', sky: ['#1d0505', '#a3301a'], far: 'volcano', farC: ['#3a1d1a', '#24110f'], night: true, mid: 'lava', ground: '#2b2020', road: '#1f1a1f', kerb: ['#ff5a1f', '#ffd23f'], verge: '#231a1a', line: '#ffb347', embers: true, glow: true },
+  ];
+  const CHAMPS = [
+    { name: 'Pip Sprocket', vehicle: 'kart', paint: 'orange', livery: 'check', number: 1 },
+    { name: 'Marina Swift', vehicle: 'bike', paint: 'blue', livery: 'stripes', number: 22 },
+    { name: 'Rusty McGravel', vehicle: 'rally', paint: 'lime', livery: 'tiger', number: 9 },
+    { name: 'Dusty Dunes', vehicle: 'monster', paint: 'orange', livery: 'flames', number: 66 },
+    { name: 'Alpine Ali', vehicle: 'rally', paint: 'white', livery: 'stripes', number: 3 },
+    { name: 'Max Mileage', vehicle: 'super', paint: 'yellow', livery: 'bolt', number: 88 },
+    { name: 'Vex Valentine', vehicle: 'hover', paint: 'pink', livery: 'stars', number: 13 },
+    { name: 'Frost Fontaine', vehicle: 'super', paint: 'white', livery: 'check', number: 5 },
+    { name: 'Blaze Okafor', vehicle: 'dragster', paint: 'red', livery: 'flames', number: 1 },
+  ];
+  const RIVALS = ['Ruby Rocket', 'Dash Dawson', 'Zoom Zhang', 'Lola Lightning', 'Turbo Tam', 'Nova Nash', 'Ziggy Gears', 'Bo Bumper', 'Kit Kerbside', 'Penny Pitstop', 'Axel Price', 'Wren Wheeler'];
+  const FIRST = ['Rocket', 'Turbo', 'Dash', 'Zoom', 'Flash', 'Nitro', 'Blaze', 'Skid', 'Zip', 'Comet'];
+  const LAST = ['Riley', 'Ruby', 'Max', 'Jaz', 'Kit', 'Sam', 'Ali', 'Remi', 'Nova', 'Theo', 'Isla', 'Zara'];
+  const randomName = () => pickR(FIRST) + ' ' + pickR(LAST);
+
+  // ------------------------------------------------------------ vehicles and the garage
+  const VEHICLES = [
+    { id: 'kart', name: 'Go-kart', blurb: 'Grippy and forgiving. Mistakes barely slow it down.', stats: { speed: 2, boost: 3, grip: 5, nitro: 2 }, unlock: 0 },
+    { id: 'rally', name: 'Rally car', blurb: 'The all-rounder. Good at everything.', stats: { speed: 3, boost: 3, grip: 3, nitro: 3 }, unlock: 0 },
+    { id: 'super', name: 'Supercar', blurb: 'Fastest of all, but it spins out easily.', stats: { speed: 5, boost: 3, grip: 1, nitro: 3 }, unlock: 0 },
+    { id: 'bike', name: 'Superbike', blurb: 'Big boosts and quick nitro. Wobbly on mistakes.', stats: { speed: 3, boost: 4, grip: 1, nitro: 4 }, unlock: 0 },
+    { id: 'monster', name: 'Monster truck', blurb: 'Huge boosts, and shrugs off mistakes.', stats: { speed: 2, boost: 5, grip: 5, nitro: 2 }, unlock: 6 },
+    { id: 'hover', name: 'Hover racer', blurb: 'Glides on light, with nitro that fills in a flash.', stats: { speed: 4, boost: 4, grip: 3, nitro: 4 }, unlock: 16 },
+    { id: 'dragster', name: 'Rocket dragster', blurb: 'The fastest machine on any track.', stats: { speed: 5, boost: 4, grip: 2, nitro: 5 }, unlock: 30 },
+  ];
+  const PAINTS = [
+    { id: 'red', name: 'Racing red', c: '#e63946', a: '#ffffff', cost: 0 },
+    { id: 'blue', name: 'Electric blue', c: '#2f6bff', a: '#ffd23f', cost: 0 },
+    { id: 'yellow', name: 'Sunburst', c: '#ffd23f', a: '#1b1d26', cost: 0 },
+    { id: 'lime', name: 'Lime', c: '#5ad13c', a: '#1b1d26', cost: 0 },
+    { id: 'orange', name: 'Tangerine', c: '#ff8c2a', a: '#ffffff', cost: 60 },
+    { id: 'violet', name: 'Violet', c: '#8a4dff', a: '#28e0ff', cost: 80 },
+    { id: 'pink', name: 'Hot pink', c: '#ff4fa3', a: '#ffffff', cost: 80 },
+    { id: 'black', name: 'Midnight', c: '#23262f', a: '#ff8c2a', cost: 100 },
+    { id: 'white', name: 'Arctic white', c: '#eef1f6', a: '#e63946', cost: 100 },
+    { id: 'gold', name: 'Gold', c: '#d9a520', a: '#1b1d26', cost: 200, metal: true },
+  ];
+  const LIVERIES = [
+    { id: 'none', name: 'Plain', cost: 0 }, { id: 'stripes', name: 'Racing stripes', cost: 0 }, { id: 'flames', name: 'Flames', cost: 120 },
+    { id: 'bolt', name: 'Lightning', cost: 120 }, { id: 'stars', name: 'Stars', cost: 150 }, { id: 'check', name: 'Chequers', cost: 150 }, { id: 'tiger', name: 'Tiger stripes', cost: 180 },
+  ];
+  const TRAILS = [
+    { id: 'fire', name: 'Fire', cost: 0, cols: ['#fff4c2', '#ffb347', '#ff4d1a'] }, { id: 'ice', name: 'Ice blue', cost: 100, cols: ['#f0fdff', '#7fe3ff', '#2f6bff'] },
+    { id: 'plasma', name: 'Plasma', cost: 150, cols: ['#fde8ff', '#c77dff', '#7b2cff'] }, { id: 'toxic', name: 'Toxic', cost: 150, cols: ['#f4ffd1', '#9dff4f', '#2fbf3a'] }, { id: 'rainbow', name: 'Rainbow', cost: 300, cols: null },
+  ];
+  const RANKS = [[0, 'Learner'], [3, 'Club racer'], [10, 'Rally ace'], [20, 'Pro driver'], [35, 'Champion'], [55, 'Legend'], [80, 'Hall of Fame']];
+  // Grand Prix classes: how quick the rivals are. Champion class opens on a track once you get a Pro podium there.
+  const CLASSES = [
+    { id: 'rookie', name: 'Rookie', pace: 0.62, coins: 0.7, note: 'Gentle rivals. Perfect for your first races on a new track.' },
+    { id: 'pro', name: 'Pro', pace: 1, coins: 1, note: 'The full field at proper race pace. Bigger prizes.' },
+    { id: 'champ', name: 'Champion', pace: 1.3, coins: 1.5, note: 'The fastest rivals in the game. Coin prizes \u00d71.5.' },
+  ];
+  const klass = (id) => CLASSES.find((c) => c.id === id) || CLASSES[1];
+  const YEARS = [[5, 'Y5 or below'], [6, 'Y6'], [7, 'Y7'], [8, 'Y8'], [9, 'Y9+']];
+  const vehicle = (id) => VEHICLES.find((v) => v.id === id) || VEHICLES[1];
+  const PACE_PAINTS = { silver: { id: 'silver', c: '#c9d1dc', a: '#1b1d26', metal: true }, bronze: { id: 'bronze', c: '#c7793a', a: '#ffffff', metal: true } };
+  const paint = (id) => PAINTS.find((p) => p.id === id) || PACE_PAINTS[id] || PAINTS[0];
+  const first = (n) => String(n).split(' ')[0].slice(0, 7);
+  const LANE_SC = [0.78, 0.89, 1];
+  const trail = (id) => TRAILS.find((t) => t.id === id) || TRAILS[0];
+
+  // ------------------------------------------------------------ saved progress
+  const KEY = 'solve-for-speed/v1';
+  const blank = () => ({ name: '', year: 6, vehicle: 'rally', paint: 'red', livery: 'stripes', number: 7, trail: 'fire', coins: 0,
+    owned: { paint: ['red', 'blue', 'yellow', 'lime'], livery: ['none', 'stripes'], trail: ['fire'] }, tt: {}, gp: {}, ghosts: {}, mode: 'tt', gpClass: 'rookie', sound: true, started: false });
+  let save = blank();
+  function load() { try { const r = localStorage.getItem(KEY); if (r) { const s = JSON.parse(r); save = Object.assign(blank(), s); save.owned = Object.assign(blank().owned, s.owned || {}); } } catch (e) { /* race without saving */ } }
+  function persist() { try { localStorage.setItem(KEY, JSON.stringify(save)); } catch (e) { /* ignore */ } }
+  const ttRec = (i) => save.tt[VEN[i].id] || { best: 0, medal: 0 };
+  const gpRec = (i) => { const r = Object.assign({ best: 0, wins: 0 }, save.gp[VEN[i].id] || {}); r.cls = Object.assign({}, r.cls || {}); return r; };
+  const podium = (p) => (p && p <= 3 ? 4 - p : 0);
+  const points = () => VEN.reduce((s, _, i) => { const r = gpRec(i); return s + ttRec(i).medal + CLASSES.reduce((a, c) => a + podium(r.cls[c.id]), 0); }, 0);
+  const classOpen = (i, cid) => cid !== 'champ' || podium(gpRec(i).cls.pro) > 0;
+  function rankFor(p) { let k = 0; RANKS.forEach((r, i) => { if (p >= r[0]) k = i; }); return { name: RANKS[k][1], next: RANKS[k + 1] || null, prev: RANKS[k][0] }; }
+  function isOpen(mode, i) {
+    if (i === 0 || VEN[i].unlockYear <= save.year) return true;
+    return mode === 'tt' ? ttRec(i - 1).medal >= 1 : (gpRec(i - 1).best > 0 && gpRec(i - 1).best <= 3);
+  }
+  const vehicleOpen = (v) => points() >= v.unlock;
+  const setups = [];
+  const setup = (i) => setups[i] || (setups[i] = PH.setup(VEN[i]));
+  const myLook = () => ({ paint: save.paint, livery: save.livery, number: save.number });
+
+  // ------------------------------------------------------------ vehicle art (SVG, side view, facing right)
+  function shade(hex, f) {
+    const n = parseInt(hex.slice(1), 16); let r = n >> 16, g = (n >> 8) & 255, b = n & 255;
+    if (f < 0) { r *= 1 + f; g *= 1 + f; b *= 1 + f; } else { r += (255 - r) * f; g += (255 - g) * f; b += (255 - b) * f; }
+    return '#' + [r, g, b].map((x) => Math.round(Math.max(0, Math.min(255, x))).toString(16).padStart(2, '0')).join('');
+  }
+  const STAR = 'M10 1.5l2.6 5.6 6.1.7-4.5 4.2 1.2 6L10 15l-5.4 3 1.2-6L1.3 7.8l6.1-.7L10 1.5Z';
+  const VDEF = {
+    kart: { wheels: [[48, 80, 16], [156, 84, 12]], exhaust: [10, 57], roundel: [150, 69, 6.5], sy: 69, fx: 190, top: 58, bot: 78,
+      body: 'M62 68 Q62 60 72 60 L134 60 Q150 60 160 66 L186 70 Q194 72 190 77 L72 77 Q62 77 62 68 Z',
+      back: (c) => `<path d="M16 73 L192 73 L192 80 L16 80 Z" fill="#2b2d36"/><rect x="26" y="54" width="36" height="20" rx="4" fill="#3a3d48"/><rect x="30" y="58" width="28" height="3" fill="#5b6070"/><rect x="30" y="64" width="28" height="3" fill="#5b6070"/>
+        <path d="M30 60 L12 57" stroke="#b9c0cd" stroke-width="4.5" stroke-linecap="round"/><path d="M74 66 L82 30 L96 30" stroke="#b9c0cd" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+        <path d="M80 46 Q77 61 86 63 L108 63 L103 44 Z" fill="#20222b"/><path d="M88 42 Q101 35 113 46 L118 62 L92 62 Z" fill="${c.suit}"/>`,
+      mid: (c) => `<path d="M152 66 L188 71" stroke="${c.L}" stroke-width="1.5" opacity=".7"/>`,
+      front: (c) => `<path d="M108 49 L128 55" stroke="${c.suit}" stroke-width="6" stroke-linecap="round"/><path d="M128 44 L133 61" stroke="#1b1d26" stroke-width="3.5" stroke-linecap="round"/>${helmet(c, 100, 31, 12.5)}` },
+    rally: { wheels: [[52, 80, 16], [150, 80, 16]], exhaust: [12, 74], roundel: [104, 58, 9], sy: 61, fx: 192, top: 20, bot: 78,
+      body: 'M14 75 L16 58 Q18 50 30 48 L58 46 L82 24 Q86 20 94 20 L132 20 Q140 20 146 26 L166 46 Q186 48 192 58 L194 72 Q194 78 188 78 L169 78 A19 19 0 0 0 131 78 L71 78 A19 19 0 0 0 33 78 L20 78 Q14 78 14 75 Z',
+      back: (c) => `<rect x="29" y="76" width="5" height="14" rx="1" fill="${c.A}"/><rect x="127" y="76" width="5" height="14" rx="1" fill="${c.A}"/>`,
+      mid: (c) => `<path d="M89 26 L82 44 L119 44 L119 25 L96 25 Q91 25 89 26 Z" fill="url(#${c.id}g)"/><path d="M123 25 L123 44 L158 44 L141 28 Q138 25 133 25 Z" fill="url(#${c.id}g)"/>
+        <path d="M100 27 L94 42 M132 27 L127 42" stroke="#fff" stroke-opacity=".45" stroke-width="2.5"/><path d="M121 26 L121 76" stroke="${c.D}" stroke-width="1.3"/><path d="M110 50 h8" stroke="${c.D}" stroke-width="2" stroke-linecap="round"/>
+        <path d="M154 40 h9 v6 h-9 Z" fill="${c.D}"/><path d="M182 55 L193 59 L191 64 L180 61 Z" fill="#fff6c4"/><path d="M15 57 h6 v9 h-6 Z" fill="#ff3b3b"/>
+        <rect x="108" y="13" width="32" height="7" rx="2" fill="#1b1d26"/><g fill="#fff6c4"><circle cx="113" cy="16.5" r="2.6"/><circle cx="120" cy="16.5" r="2.6"/><circle cx="127" cy="16.5" r="2.6"/><circle cx="134" cy="16.5" r="2.6"/></g>
+        <path d="M84 21 L60 16 L57 21 L81 26 Z" fill="${c.D}"/><path d="M14 69 h20 v7 h-20 Z" fill="#2b2d36"/><path d="M172 69 h22 v7 h-22 Z" fill="#2b2d36"/>` },
+    super: { wheels: [[52, 82, 15], [152, 82, 15]], exhaust: [9, 72], roundel: [112, 62, 8], sy: 63, fx: 196, top: 30, bot: 80,
+      body: 'M10 72 Q10 56 28 52 L62 48 Q84 30 108 30 Q126 30 140 44 L186 58 Q196 62 196 70 L196 76 Q196 80 190 80 L168 80 A16 16 0 0 0 136 80 L68 80 A16 16 0 0 0 36 80 L16 80 Q10 80 10 74 Z',
+      back: (c) => `<path d="M22 52 L20 36 M36 50 L34 36" stroke="#7d8496" stroke-width="3.2"/>`,
+      mid: (c) => `<path d="M72 47 Q88 34 108 34 Q122 34 133 45 Z" fill="url(#${c.id}g)"/><path d="M96 37 L88 46" stroke="#fff" stroke-opacity=".45" stroke-width="3"/>
+        <path d="M72 60 L100 57 L96 68 L76 70 Z" fill="#15161c"/><path d="M76 62 L96 60 M76 65 L95 63" stroke="#3a3d48" stroke-width="1.2"/><path d="M181 61 L194 64 L192 67 L179 65 Z" fill="#fff6c4"/><path d="M10 59 h8 v5 h-8 Z" fill="#ff3b3b"/>
+        <path d="M6 31 L46 31 L48 37 L8 38 Z" fill="${c.D}"/><path d="M6 31 L46 31" stroke="${c.L}" stroke-width="1.2"/><path d="M166 80 L198 80 L196 84 L170 84 Z" fill="#15161c"/><path d="M68 80 L136 80 L134 84 L70 84 Z" fill="#15161c"/>` },
+    bike: { wheels: [[48, 76, 20], [158, 76, 20]], exhaust: [26, 66], roundel: [148, 54, 8], sy: 53, fx: 186, top: 34, bot: 72,
+      body: 'M40 40 L66 44 L104 44 Q118 32 140 38 L150 40 Q172 42 186 56 Q180 62 160 62 L140 70 L98 72 L84 56 L62 52 L44 50 Z',
+      back: (c) => `<path d="M48 76 L98 68" stroke="#2b2d36" stroke-width="5"/><path d="M146 46 L158 76" stroke="#c9d1dc" stroke-width="4.5"/><path d="M60 60 L28 63 L30 70 L62 67 Z" fill="#c9d1dc"/>
+        <path d="M84 48 L106 62 L118 72" stroke="${c.suit}" stroke-width="9" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`,
+      mid: (c) => `<path d="M60 44 L100 44 L98 49 L62 51 Z" fill="#1b1d26"/><path d="M179 52 L188 56 L181 58 Z" fill="#fff6c4"/><path d="M150 40 Q164 30 176 40 Q166 40 150 42 Z" fill="url(#${c.id}g)"/>`,
+      front: (c) => `<path d="M78 42 Q98 22 128 28 L122 40 Q102 36 92 50 Z" fill="${c.suit}"/><path d="M116 32 L150 44" stroke="${c.suit}" stroke-width="7" stroke-linecap="round"/><circle cx="151" cy="44" r="3.5" fill="#1b1d26"/>${helmet(c, 128, 22, 12)}` },
+    monster: { wheels: [[52, 68, 28], [152, 68, 28]], exhaust: [12, 38], roundel: [140, 34, 8], sy: 35, fx: 194, top: 2, bot: 46, treads: true,
+      body: 'M14 42 L14 26 Q14 22 20 22 L96 22 L104 6 Q106 2 112 2 L146 2 Q152 2 156 8 L166 22 L186 24 Q194 26 194 34 L194 42 Q194 46 188 46 L18 46 Q14 46 14 42 Z',
+      back: (c) => `<path d="M52 68 L68 46 M152 68 L136 46" stroke="#c9d1dc" stroke-width="5"/><path d="M36 46 L172 46" stroke="#22252f" stroke-width="8"/><path d="M92 22 L92 4" stroke="#c9d1dc" stroke-width="4" stroke-linecap="round"/>`,
+      mid: (c) => `<path d="M110 6 L106 20 L127 20 L127 6 Z" fill="url(#${c.id}g)"/><path d="M131 6 L131 20 L161 20 L153 8 Q151 6 147 6 Z" fill="url(#${c.id}g)"/><path d="M118 7 L114 19" stroke="#fff" stroke-opacity=".45" stroke-width="2.5"/>
+        <path d="M22 22 L30 12 L82 12 L90 22" stroke="#c9d1dc" stroke-width="3" fill="none"/><path d="M188 28 h6 v6 h-6 Z" fill="#fff6c4"/><path d="M14 28 h5 v8 h-5 Z" fill="#ff3b3b"/><path d="M186 40 h10 v6 h-10 Z" fill="#22252f"/><path d="M129 22 L129 44" stroke="${c.D}" stroke-width="1.3"/>` },
+    hover: { wheels: [], pads: [[60, 84], [148, 84]], exhaust: [3, 59], roundel: [118, 54, 8], sy: 57, fx: 196, top: 24, bot: 72,
+      body: 'M6 60 L30 48 Q60 36 110 34 Q160 34 196 56 Q198 60 194 62 Q160 70 120 72 L40 72 Q12 70 6 60 Z',
+      back: (c) => `<path d="M60 64 L44 82 L76 82 L92 68 Z" fill="${c.D}"/><path d="M16 54 L6 28 L26 28 L42 50 Z" fill="${c.D}"/>`,
+      mid: (c) => `<path d="M94 37 Q110 18 140 24 Q154 28 158 38 Z" fill="url(#${c.id}g)" opacity=".92"/><path d="M118 25 L110 36" stroke="#fff" stroke-opacity=".5" stroke-width="3"/>
+        <path d="M30 64 Q100 60 172 60" stroke="#28e0ff" stroke-width="2.5" fill="none"/><path d="M2 54 L10 52 L10 66 L2 64 Z" fill="#9aa3b5"/>` },
+    dragster: { wheels: [[40, 74, 22], [184, 88, 8]], exhaust: [3, 64], roundel: [134, 77, 7], sy: 73, fx: 196, top: 14, bot: 86,
+      body: 'M16 66 Q16 54 34 52 L82 52 Q94 52 102 58 L196 82 Q199 86 194 88 L100 87 L28 85 Q16 83 16 74 Z',
+      back: (c) => `<path d="M22 52 L20 22 M34 52 L32 22" stroke="#7d8496" stroke-width="3.2"/><path d="M6 15 L50 15 L52 23 L8 23 Z" fill="${c.D}"/><path d="M3 56 L16 52 L16 76 L3 72 Z" fill="#9aa3b5"/>`,
+      mid: (c) => `<path d="M176 85 L184 88" stroke="#22252f" stroke-width="2"/>`,
+      front: (c) => `<path d="M68 55 Q84 38 104 57 Z" fill="#15161c"/>${helmet(c, 86, 46, 10)}` },
+  };
+  function helmet(c, x, y, r) {
+    return `<circle cx="${x}" cy="${y}" r="${r}" fill="${c.P}"/><path d="M${x - r * 0.9} ${y - r * 0.3} Q${x} ${y - r * 1.15} ${x + r * 0.9} ${y - r * 0.5}" stroke="${c.A}" stroke-width="${r * 0.24}" fill="none"/>
+      <path d="M${x + r * 0.08} ${y - r * 0.32} h${r * 0.88} a${r * 0.36} ${r * 0.36} 0 0 1 0 ${r * 0.72} h-${r * 0.88} Z" fill="#17202e"/><path d="M${x + r * 0.3} ${y - r * 0.15} h${r * 0.5}" stroke="#9fd8ff" stroke-width="${r * 0.12}" stroke-linecap="round"/>
+      <circle cx="${x}" cy="${y}" r="${r}" fill="url(#${c.id}h)"/>`;
+  }
+  function liveryArt(lv, V, c) {
+    const { sy, fx, top, bot } = V, A = c.A;
+    if (lv === 'stripes') return `<rect x="0" y="${sy - 6}" width="200" height="4" fill="${A}"/><rect x="0" y="${sy}" width="200" height="2.2" fill="${A}"/>`;
+    if (lv === 'flames') { const f = (x, y) => `${fx - x} ${sy + y}`; return `<path d="M${f(0, -8)} C${f(14, -10)} ${f(24, -3)} ${f(42, -10)} C${f(33, -2)} ${f(46, 0)} ${f(60, -3)} C${f(47, 3)} ${f(40, 7)} ${f(56, 12)} C${f(33, 12)} ${f(16, 10)} ${f(0, 9)} Z" fill="url(#${c.id}f)"/>`; }
+    if (lv === 'bolt') return `<path d="M${fx - 6} ${sy - 8} L${fx - 46} ${sy - 3} L${fx - 40} ${sy + 1} L${fx - 96} ${sy + 8} L${fx - 60} ${sy - 1} L${fx - 66} ${sy - 4} Z" fill="${A}"/>`;
+    if (lv === 'stars') return [30, 60, 90, 120, 150].map((dx, k) => `<path transform="translate(${fx - dx - 4} ${sy + (k % 2 ? -1 : -7)}) scale(.42)" d="${STAR}" fill="${A}"/>`).join('');
+    if (lv === 'check') { let s = ''; for (let i = 0; i * 6 < 64; i++) for (let j = 0; top + j * 6 < bot; j++) if ((i + j) % 2) s += `<rect x="${4 + i * 6}" y="${top + j * 6}" width="6" height="6" fill="${A}"/>`; return s; }
+    if (lv === 'tiger') { let s = ''; for (let k = 0; k < 7; k++) { const x0 = fx - 14 - k * 24; s += `<path d="M${x0} ${top - 2} L${x0 - 5} ${top - 2} L${x0 - 13} ${bot + 2} L${x0 - 9} ${bot + 2} Z" fill="${c.dark ? A : '#1b1d26'}" opacity=".75"/>`; } return s; }
+    return '';
+  }
+  function wheelSVG(x, y, r, id, treads) {
+    let s = `<circle cx="${x}" cy="${y}" r="${r}" fill="#15151b"/>`;
+    if (treads) s += `<circle cx="${x}" cy="${y}" r="${r - 2}" fill="none" stroke="#30303b" stroke-width="4" stroke-dasharray="5 3"/>`;
+    s += `<circle cx="${x}" cy="${y}" r="${r * 0.8}" fill="none" stroke="#2c2c37" stroke-width="${r * 0.1}"/><circle cx="${x}" cy="${y}" r="${r * 0.6}" fill="url(#${id}w)"/>`;
+    for (let k = 0; k < 5; k++) { const a = k * Math.PI * 2 / 5 - Math.PI / 2; s += `<path d="M${x} ${y} L${(x + Math.cos(a) * r * 0.56).toFixed(2)} ${(y + Math.sin(a) * r * 0.56).toFixed(2)}" stroke="#6b7385" stroke-width="${(r * 0.12).toFixed(2)}" stroke-linecap="round"/>`; }
+    return s + `<circle cx="${x}" cy="${y}" r="${r * 0.17}" fill="#2b2d36"/>`;
+  }
+  function vehicleSVG(vid, look, opts) {
+    opts = opts || {};
+    const V = VDEF[vid] || VDEF.rally, P = paint(look.paint), id = 'v' + (++uid);
+    const dark = P.id === 'black';
+    const c = { id, P: P.c, D: shade(P.c, -0.35), L: shade(P.c, 0.35), A: P.a, suit: dark ? '#e6e9f0' : '#22252f', dark };
+    const flameCols = ['red', 'orange'].includes(P.id) ? ['#fff3b0', '#ffd23f', '#ff8c2a'] : ['#ffe066', '#ff8c2a', '#e63946'];
+    const defs = `<defs>
+      <clipPath id="${id}c"><path d="${V.body}"/></clipPath>
+      <linearGradient id="${id}s" x1="0" y1="${V.top}" x2="0" y2="${V.bot}" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#fff" stop-opacity=".42"/><stop offset=".38" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".38"/></linearGradient>
+      <linearGradient id="${id}m" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".35" stop-color="#fff" stop-opacity=".45"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/><stop offset=".7" stop-color="#fff" stop-opacity=".3"/><stop offset=".8" stop-color="#fff" stop-opacity="0"/></linearGradient>
+      <linearGradient id="${id}g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d6f1ff"/><stop offset=".5" stop-color="#5fa8d8"/><stop offset="1" stop-color="#1d3550"/></linearGradient>
+      <radialGradient id="${id}w" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#ffffff"/><stop offset=".6" stop-color="${P.id === 'gold' ? '#f0c955' : '#c3cad6'}"/><stop offset="1" stop-color="${P.id === 'gold' ? '#a47812' : '#7c8496'}"/></radialGradient>
+      <radialGradient id="${id}h" cx="35%" cy="28%" r="70%"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".3"/></radialGradient>
+      <linearGradient id="${id}f" x1="${V.fx}" y1="0" x2="${V.fx - 60}" y2="0" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="${flameCols[0]}"/><stop offset=".5" stop-color="${flameCols[1]}"/><stop offset="1" stop-color="${flameCols[2]}"/></linearGradient>
+      <radialGradient id="${id}p" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#bff7ff" stop-opacity=".95"/><stop offset=".5" stop-color="#28e0ff" stop-opacity=".55"/><stop offset="1" stop-color="#28e0ff" stop-opacity="0"/></radialGradient>
+    </defs>`;
+    const R = V.roundel, number = String(look.number || 1);
+    const roundel = `<circle cx="${R[0]}" cy="${R[1]}" r="${R[2]}" fill="#fff" stroke="${c.D}" stroke-width="1.2"/><text x="${R[0]}" y="${R[1] + R[2] * 0.42}" text-anchor="middle" font-size="${(R[2] * (number.length > 1 ? 1.05 : 1.25)).toFixed(1)}" font-family="Arial Black, Arial, Helvetica, sans-serif" font-weight="900" font-style="italic" fill="#15161c">${number}</text>`;
+    const wheels = opts.wheels === false ? '' : V.wheels.map(([x, y, r]) => wheelSVG(x, y, r, id, V.treads)).join('') + (V.pads ? V.pads.map(([x, y]) => `<ellipse cx="${x}" cy="${y + 4}" rx="22" ry="6" fill="url(#${id}p)"/><ellipse cx="${x}" cy="${y}" rx="14" ry="3" fill="#bff7ff"/>`).join('') : '');
+    const ground = opts.shadow ? '<ellipse cx="100" cy="97" rx="88" ry="3.5" fill="#000" opacity=".4"/>' : '';
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 100" width="${opts.w || 400}" height="${opts.h || 200}" role="img" aria-label="${vehicle(vid).name}">${defs}${ground}
+      ${V.back(c)}<path d="${V.body}" fill="${P.c}"/><g clip-path="url(#${id}c)">${liveryArt(look.livery, V, c)}</g>
+      <path d="${V.body}" fill="url(#${id}s)"/>${P.metal ? `<path d="${V.body}" fill="url(#${id}m)"/>` : ''}<path d="${V.body}" fill="none" stroke="#000" stroke-opacity=".35" stroke-width="1"/>
+      ${V.mid(c)}${V.front ? V.front(c) : ''}${roundel}${wheels}</svg>`;
+  }
+
+  // ------------------------------------------------------------ scenery (canvas)
+  function rng(seed) { let a = seed >>> 0; return () => { a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+  const hsh = (k, s) => rng(k * 7919 + s * 104729 + 17)();
+  const layout = (H) => ({ hz: H * 0.46, mid: H * 0.505, kt: H * 0.53, rt: H * 0.555, rb: H * 0.935, kb: H * 0.96, lanes: [H * 0.665, H * 0.795, H * 0.925], div: [H * 0.705, H * 0.835] });
+  function ridge(g, W, base, amp, color, cam, par, f, seed, sharp) {
+    g.fillStyle = color; g.beginPath(); g.moveTo(0, base + 4);
+    for (let x = 0; x <= W + 8; x += 6) {
+      const wx = x + cam * par;
+      let h = Math.sin(wx * f + seed) * 0.5 + Math.sin(wx * f * 2.3 + seed * 1.7) * 0.3 + Math.sin(wx * f * 5.1 + seed * 2.9) * 0.2;
+      if (sharp) h = 1 - Math.abs(Math.sin(wx * f + seed)) * 1.2 + Math.sin(wx * f * 3.7 + seed) * 0.15;
+      g.lineTo(x, base - amp * (0.55 + 0.45 * h));
+    }
+    g.lineTo(W, base + 4); g.closePath(); g.fill();
+  }
+  function each(W, cam, par, sp, fn) { const off = cam * par, k0 = Math.floor((off - sp * 2) / sp), k1 = Math.ceil((off + W + sp * 2) / sp); for (let k = k0; k <= k1; k++) fn(k * sp - off + (hsh(k, 9) - 0.5) * sp * 0.5, k); }
+  const CROWD = ['#ff4f6d', '#ffd23f', '#28e0ff', '#ffffff', '#8dff5a', '#ff8c2a', '#8a4dff', '#2f6bff'], SKIN = ['#f6d0a8', '#d9a06b', '#a8693f', '#7a4a2a', '#f0bf8e'];
+  const SLOGANS = ['SOLVE IT!', 'x = GO', 'NITRO', '2x + 1', 'TURBO', 'MATHS', 'y = mx + c', 'ZOOM!', 'a + b = c', 'FULL SPEED', '3n \u2212 1', 'GO GO GO'];
+  const BOARD_COLS = [['#ffd23f', '#15161c'], ['#e63946', '#ffffff'], ['#2f6bff', '#ffffff'], ['#15161c', '#ffd23f'], ['#ffffff', '#e63946'], ['#5ad13c', '#15161c'], ['#8a4dff', '#ffffff']];
+  function drawScene(g, W, H, T, cam, time, ppm, px, L, opt) {
+    const Y = layout(H), s = H / 300, C = cam * ppm;
+    let gr = g.createLinearGradient(0, 0, 0, Y.hz); gr.addColorStop(0, T.sky[0]); gr.addColorStop(1, T.sky[1]); g.fillStyle = gr; g.fillRect(0, 0, W, Y.hz + 2);
+    if (T.stars) { g.fillStyle = '#fff'; for (let i = 0; i < 50; i++) { const x = ((hsh(i, 1) * W * 1.6 - C * 0.004) % W + W) % W, y = hsh(i, 2) * Y.hz * 0.8; g.globalAlpha = 0.35 + 0.65 * Math.abs(Math.sin(time * (0.6 + hsh(i, 3)) + i)); g.fillRect(x, y, 1.6 * s, 1.6 * s); } g.globalAlpha = 1; }
+    if (T.aurora) { for (let b = 0; b < 2; b++) { g.beginPath(); for (let x = 0; x <= W; x += 8) { const y = Y.hz * (0.2 + b * 0.14) + Math.sin(x * 0.012 + time * 0.4 + b * 2) * 14 * s; x === 0 ? g.moveTo(x, y) : g.lineTo(x, y); } g.strokeStyle = b ? 'rgba(180,120,255,.35)' : 'rgba(90,255,190,.4)'; g.lineWidth = 22 * s; g.stroke(); } }
+    if (T.sun) { const sx = W * T.sun.x, sy = Y.hz * T.sun.y, sg = g.createRadialGradient(sx, sy, 0, sx, sy, 70 * s); sg.addColorStop(0, 'rgba(255,248,214,.9)'); sg.addColorStop(1, 'rgba(255,248,214,0)'); g.fillStyle = sg; g.fillRect(sx - 70 * s, sy - 70 * s, 140 * s, 140 * s); g.fillStyle = T.sun.c; g.beginPath(); g.arc(sx, sy, 18 * s, 0, Math.PI * 2); g.fill(); }
+    if (T.moon) { const mx = W * 0.82, my = Y.hz * 0.3; g.fillStyle = 'rgba(255,240,210,.18)'; g.beginPath(); g.arc(mx, my, 34 * s, 0, Math.PI * 2); g.fill(); g.fillStyle = '#fff1d0'; g.beginPath(); g.arc(mx, my, 15 * s, 0, Math.PI * 2); g.fill(); }
+    // far layer
+    const fc = T.farC;
+    if (T.far === 'hills') { ridge(g, W, Y.hz, 60 * s, fc[0], C, 0.04, 0.006, 1); ridge(g, W, Y.hz, 34 * s, fc[1], C, 0.09, 0.011, 4); }
+    if (T.far === 'sea') { const sea = g.createLinearGradient(0, Y.hz - 40 * s, 0, Y.hz); sea.addColorStop(0, fc[0]); sea.addColorStop(1, fc[1]); g.fillStyle = sea; g.fillRect(0, Y.hz - 40 * s, W, 42 * s); ridge(g, W, Y.hz - 40 * s, 22 * s, '#7fa7c9', C, 0.02, 0.008, 2);
+      g.strokeStyle = 'rgba(255,255,255,.35)'; g.lineWidth = 1.5; for (let i = 0; i < 6; i++) { const x = ((hsh(i, 4) * W * 1.4 - C * 0.05 - time * 6) % W + W) % W, y = Y.hz - 32 * s + hsh(i, 5) * 26 * s; g.beginPath(); g.moveTo(x, y); g.lineTo(x + 18 * s, y); g.stroke(); }
+      each(W, C, 0.07, 160 * s, (x, k) => { const y = Y.hz - 14 * s - hsh(k, 2) * 16 * s; g.fillStyle = '#f4f6fa'; g.beginPath(); g.moveTo(x, y); g.lineTo(x, y - 22 * s); g.lineTo(x + 14 * s, y); g.closePath(); g.fill(); g.fillStyle = hsh(k, 3) > 0.5 ? '#e63946' : '#1c3d66'; g.fillRect(x - 10 * s, y, 26 * s, 5 * s); }); }
+    if (T.far === 'mesa') { each(W, C, 0.06, 150 * s, (x, k) => { const w = (70 + hsh(k, 1) * 80) * s, h = (40 + hsh(k, 2) * 50) * s; g.fillStyle = hsh(k, 3) > 0.5 ? fc[0] : fc[1]; g.beginPath(); g.moveTo(x - w / 2 - 14 * s, Y.hz); g.lineTo(x - w / 2, Y.hz - h); g.lineTo(x + w / 2, Y.hz - h); g.lineTo(x + w / 2 + 14 * s, Y.hz); g.closePath(); g.fill(); g.fillStyle = 'rgba(0,0,0,.12)'; g.fillRect(x - w / 2, Y.hz - h * 0.6, w, 3 * s); }); }
+    if (T.far === 'peaks' || T.far === 'ice') { each(W, C, 0.05, 110 * s, (x, k) => { const w = (90 + hsh(k, 1) * 70) * s, h = (60 + hsh(k, 2) * 60) * s; g.fillStyle = hsh(k, 3) > 0.5 ? fc[0] : fc[1]; g.beginPath(); g.moveTo(x - w / 2, Y.hz); g.lineTo(x, Y.hz - h); g.lineTo(x + w / 2, Y.hz); g.closePath(); g.fill();
+        g.fillStyle = T.far === 'ice' ? 'rgba(255,255,255,.75)' : '#ffffff'; g.beginPath(); g.moveTo(x - w * 0.16, Y.hz - h * 0.68); g.lineTo(x, Y.hz - h); g.lineTo(x + w * 0.16, Y.hz - h * 0.68); g.lineTo(x + w * 0.05, Y.hz - h * 0.74); g.lineTo(x - w * 0.04, Y.hz - h * 0.66); g.closePath(); g.fill();
+        if (T.far === 'ice') { g.fillStyle = 'rgba(80,150,220,.25)'; g.beginPath(); g.moveTo(x, Y.hz - h); g.lineTo(x + w / 2, Y.hz); g.lineTo(x + w * 0.1, Y.hz); g.closePath(); g.fill(); } }); }
+    if (T.far === 'skyline') { each(W, C, 0.08, 34 * s, (x, k) => { const w = (24 + hsh(k, 1) * 22) * s, h = (30 + hsh(k, 2) * 80) * s; g.fillStyle = hsh(k, 3) > 0.5 ? fc[0] : fc[1]; g.fillRect(x, Y.hz - h, w, h);
+        if (T.night) { for (let wy = Y.hz - h + 6 * s; wy < Y.hz - 4 * s; wy += 8 * s) for (let wx = x + 4 * s; wx < x + w - 4 * s; wx += 7 * s) if (hsh(Math.round(wx + wy), k) > 0.55) { g.fillStyle = ['#ffd86b', '#7fe9ff', '#ff8ad0'][Math.floor(hsh(Math.round(wy), k) * 3)]; g.fillRect(wx, wy, 3 * s, 4 * s); } } }); }
+    if (T.far === 'volcano') { const vx = W * 0.62 - ((C * 0.01) % (W * 1.4)), vy = Y.hz; for (const off of [0, W * 1.4]) { const x = vx + off; g.fillStyle = fc[0]; g.beginPath(); g.moveTo(x - 160 * s, vy); g.lineTo(x - 26 * s, vy - 110 * s); g.lineTo(x + 26 * s, vy - 110 * s); g.lineTo(x + 160 * s, vy); g.closePath(); g.fill();
+        const lg = g.createRadialGradient(x, vy - 110 * s, 0, x, vy - 110 * s, 60 * s); lg.addColorStop(0, 'rgba(255,170,60,.9)'); lg.addColorStop(1, 'rgba(255,90,30,0)'); g.fillStyle = lg; g.fillRect(x - 60 * s, vy - 170 * s, 120 * s, 120 * s);
+        g.strokeStyle = '#ff7a2a'; g.lineWidth = 3 * s; g.beginPath(); g.moveTo(x - 6 * s, vy - 108 * s); g.quadraticCurveTo(x - 20 * s, vy - 70 * s, x - 34 * s, vy - 40 * s); g.moveTo(x + 8 * s, vy - 108 * s); g.quadraticCurveTo(x + 24 * s, vy - 60 * s, x + 40 * s, vy - 30 * s); g.stroke();
+        for (let i = 0; i < 5; i++) { const t = (time * 0.15 + i / 5) % 1; g.fillStyle = `rgba(60,40,40,${0.5 * (1 - t)})`; g.beginPath(); g.arc(x + Math.sin(i + time * 0.3) * 20 * s, vy - 120 * s - t * 90 * s, (14 + t * 30) * s, 0, Math.PI * 2); g.fill(); } }
+      ridge(g, W, Y.hz, 26 * s, fc[1], C, 0.08, 0.012, 3); }
+    // verge and mid layer
+    g.fillStyle = T.ground; g.fillRect(0, Y.hz, W, Y.kt - Y.hz + 1);
+    const mb = Y.mid;
+    if (T.mid === 'trees') each(W, C, 0.45, 70 * s, (x, k) => { const h = (20 + hsh(k, 1) * 16) * s; g.fillStyle = '#6b4a2b'; g.fillRect(x - 2 * s, mb - h * 0.45, 4 * s, h * 0.45); g.fillStyle = hsh(k, 2) > 0.5 ? '#3f9a3a' : '#57b847'; g.beginPath(); g.arc(x, mb - h * 0.62, h * 0.38, 0, Math.PI * 2); g.arc(x - h * 0.22, mb - h * 0.45, h * 0.26, 0, Math.PI * 2); g.arc(x + h * 0.24, mb - h * 0.47, h * 0.27, 0, Math.PI * 2); g.fill(); });
+    if (T.mid === 'palms') each(W, C, 0.45, 90 * s, (x, k) => { const h = (34 + hsh(k, 1) * 18) * s; g.strokeStyle = '#8a5a32'; g.lineWidth = 3.5 * s; g.beginPath(); g.moveTo(x, mb); g.quadraticCurveTo(x + 6 * s, mb - h * 0.5, x + 2 * s, mb - h); g.stroke(); g.strokeStyle = '#2f9a4a'; g.lineWidth = 3 * s; for (let f = 0; f < 5; f++) { const a = -Math.PI / 2 + (f - 2) * 0.7; g.beginPath(); g.moveTo(x + 2 * s, mb - h); g.quadraticCurveTo(x + 2 * s + Math.cos(a) * 12 * s, mb - h + Math.sin(a) * 10 * s - 4 * s, x + 2 * s + Math.cos(a) * 18 * s, mb - h + 8 * s); g.stroke(); } });
+    if (T.mid === 'pines') each(W, C, 0.45, 34 * s, (x, k) => { const h = (24 + hsh(k, 1) * 22) * s; g.fillStyle = T.dark ? (hsh(k, 2) > 0.5 ? '#2c5b3a' : '#24492f') : (hsh(k, 2) > 0.5 ? '#2f7d3f' : '#3c9149'); for (let t = 0; t < 3; t++) { const ty = mb - h * (0.2 + t * 0.27); g.beginPath(); g.moveTo(x - h * (0.3 - t * 0.07), ty + h * 0.22); g.lineTo(x, ty - h * 0.18); g.lineTo(x + h * (0.3 - t * 0.07), ty + h * 0.22); g.closePath(); g.fill(); } g.fillStyle = '#5a3d24'; g.fillRect(x - 1.5 * s, mb - h * 0.1, 3 * s, h * 0.1); });
+    if (T.mid === 'cacti') each(W, C, 0.45, 80 * s, (x, k) => { const h = (20 + hsh(k, 1) * 16) * s; g.fillStyle = '#4f9a54'; const rr = (X, Y2, w, hh) => { g.beginPath(); g.roundRect ? g.roundRect(X, Y2, w, hh, w / 2) : g.rect(X, Y2, w, hh); g.fill(); }; rr(x - 3 * s, mb - h, 6 * s, h); rr(x - 10 * s, mb - h * 0.7, 5 * s, h * 0.35); rr(x - 10 * s, mb - h * 0.45, 9 * s, 4 * s); rr(x + 6 * s, mb - h * 0.82, 5 * s, h * 0.4); rr(x + 2 * s, mb - h * 0.5, 9 * s, 4 * s); g.fillStyle = '#b5703f'; g.beginPath(); g.ellipse(x + 26 * s, mb, 9 * s, 4 * s, 0, Math.PI, 0); g.fill(); });
+    if (T.mid === 'buildings') each(W, C, 0.45, 44 * s, (x, k) => { const w = (30 + hsh(k, 1) * 14) * s, h = (32 + hsh(k, 2) * 40) * s, col = ['#e9785d', '#f2c25b', '#6fa8dc', '#9ec97a', '#c48bd8'][Math.floor(hsh(k, 3) * 5)]; g.fillStyle = col; g.fillRect(x, mb - h, w, h); g.fillStyle = 'rgba(255,255,255,.75)'; for (let wy = mb - h + 5 * s; wy < mb - 8 * s; wy += 9 * s) for (let wx = x + 4 * s; wx < x + w - 5 * s; wx += 8 * s) g.fillRect(wx, wy, 4 * s, 5 * s); g.fillStyle = 'rgba(0,0,0,.18)'; g.fillRect(x, mb - h, w, 3 * s); });
+    if (T.mid === 'neon') each(W, C, 0.45, 46 * s, (x, k) => { const w = (32 + hsh(k, 1) * 12) * s, h = (34 + hsh(k, 2) * 44) * s, nc = ['#ff4fa3', '#28e0ff', '#ffd23f', '#8dff5a'][Math.floor(hsh(k, 3) * 4)]; g.fillStyle = '#271f52'; g.fillRect(x, mb - h, w, h);
+        for (let wy = mb - h + 6 * s; wy < mb - 8 * s; wy += 9 * s) for (let wx = x + 4 * s; wx < x + w - 5 * s; wx += 8 * s) if (hsh(Math.round(wx * 3 + wy), k) > 0.45) { g.fillStyle = 'rgba(255,220,140,.8)'; g.fillRect(wx, wy, 3.5 * s, 4.5 * s); }
+        g.strokeStyle = nc; g.beginPath(); g.moveTo(x + s, mb); g.lineTo(x + s, mb - h + s); g.lineTo(x + w - s, mb - h + s); g.lineTo(x + w - s, mb); g.globalAlpha = 0.25; g.lineWidth = 6 * s; g.stroke(); g.globalAlpha = 1; g.lineWidth = 1.8 * s; g.stroke();
+        if (hsh(k, 5) > 0.45) { g.fillStyle = nc; g.globalAlpha = 0.25; g.fillRect(x + w * 0.6 - 2.5 * s, mb - h + 4.5 * s, 10 * s, h * 0.45 + 5 * s); g.globalAlpha = 1; g.fillRect(x + w * 0.6, mb - h + 7 * s, 5 * s, h * 0.45); } });
+    if (T.mid === 'crystals') each(W, C, 0.45, 40 * s, (x, k) => { const h = (16 + hsh(k, 1) * 26) * s; g.fillStyle = hsh(k, 2) > 0.5 ? '#bfe6ff' : '#9fd3f7'; g.beginPath(); g.moveTo(x - h * 0.22, mb); g.lineTo(x - h * 0.06, mb - h); g.lineTo(x + h * 0.12, mb - h * 0.8); g.lineTo(x + h * 0.26, mb); g.closePath(); g.fill(); g.fillStyle = 'rgba(255,255,255,.7)'; g.beginPath(); g.moveTo(x - h * 0.06, mb - h); g.lineTo(x, mb); g.lineTo(x - h * 0.12, mb); g.closePath(); g.fill(); });
+    if (T.mid === 'lava') each(W, C, 0.45, 60 * s, (x, k) => { const w = (26 + hsh(k, 1) * 26) * s, h = (10 + hsh(k, 2) * 18) * s; g.fillStyle = '#151012'; g.beginPath(); g.moveTo(x - w / 2, mb); g.lineTo(x - w * 0.3, mb - h); g.lineTo(x + w * 0.2, mb - h * 1.1); g.lineTo(x + w / 2, mb); g.closePath(); g.fill(); g.strokeStyle = '#ff6a1f'; g.lineWidth = 1.6 * s; g.beginPath(); g.moveTo(x - w * 0.2, mb - h * 0.8); g.lineTo(x, mb - h * 0.4); g.lineTo(x + w * 0.1, mb); g.stroke(); });
+    // grandstands at the start and finish, and distance boards
+    const wx = (d) => px + (d - cam) * ppm;
+    const stands = (d0, d1, excited, label) => { const x0 = wx(d0), x1 = wx(d1); if (x1 < -20 || x0 > W + 20) return;
+      const base = Y.kt - 2 * s, top = base - 40 * s, roof = top - 13 * s, span = x1 - x0;
+      g.fillStyle = '#8b93a6'; for (let k = 0; k <= 4; k++) g.fillRect(x0 + span * k / 4 - 1.5 * s, roof, 3 * s, base - roof);
+      g.fillStyle = '#1f2330'; g.fillRect(x0, top, span, base - top);
+      for (let row = 0; row < 3; row++) { g.fillStyle = row % 2 ? '#353b4e' : '#2c3243'; g.fillRect(x0, top + 4 * s + row * 12 * s, span, 12 * s); }
+      const step = 7 * s, xa = Math.max(x0 + 2 * s, x0 + Math.ceil((-12 - x0) / step) * step), xb = Math.min(x1 - 4 * s, W + 12);
+      for (let row = 0; row < 3; row++) for (let xx = xa; xx < xb; xx += step) {
+        const k = Math.round((xx - x0) / step) * 3 + row, wave = excited ? Math.abs(Math.sin(time * 9 + k)) : 0, hy = top + 6 * s + row * 12 * s - wave * 3 * s - Math.sin(time * 2 + k) * 0.5 * s, col = CROWD[k % CROWD.length];
+        g.fillStyle = col; g.fillRect(xx - 2.6 * s, hy + 2.6 * s, 5.2 * s, 6 * s);
+        if (excited && k % 3 === 0) { g.fillRect(xx - 4 * s, hy - 3 * s, 1.6 * s, 6 * s); g.fillRect(xx + 2.4 * s, hy - 3 * s, 1.6 * s, 6 * s); }
+        g.fillStyle = SKIN[k % SKIN.length]; g.beginPath(); g.arc(xx, hy, 2.4 * s, 0, Math.PI * 2); g.fill();
+        if (k % 7 === 2) { g.fillStyle = col; g.fillRect(xx - 2.6 * s, hy - 2.6 * s, 5.2 * s, 1.8 * s); }
+      }
+      g.fillStyle = '#e8ebf2'; g.beginPath(); g.moveTo(x0 - 8 * s, roof + 5 * s); g.lineTo(x1 + 8 * s, roof + 5 * s); g.lineTo(x1 + 3 * s, roof - 4 * s); g.lineTo(x0 - 3 * s, roof - 4 * s); g.closePath(); g.fill();
+      g.fillStyle = T.kerb[0]; g.fillRect(x0 - 8 * s, roof + 5 * s, span + 16 * s, 3 * s);
+      const bx = x0 + span * 0.5; if (bx > -60 && bx < W + 60) { g.fillStyle = '#15161c'; g.fillRect(bx - 30 * s, roof - 1 * s, 60 * s, 11 * s); g.fillStyle = '#ffd23f'; g.font = `400 ${(9.5 * s).toFixed(1)}px Racing Sans One, Impact, sans-serif`; g.textAlign = 'center'; g.fillText(label, bx, roof + 7.6 * s); }
+    };
+    stands(-70, 26, false, 'START'); stands(L - 30, L + 70, !!(opt && opt.finishing), 'FINISH');
+    for (let d = 250; d < L - 120; d += 250) { const x = wx(d); if (x < -40 || x > W + 40) continue; g.fillStyle = '#5b6070'; g.fillRect(x - 1.5 * s, Y.kt - 22 * s, 3 * s, 22 * s); g.fillStyle = '#ffffff'; g.fillRect(x - 15 * s, Y.kt - 34 * s, 30 * s, 14 * s); g.fillStyle = '#15161c'; g.font = `700 ${9 * s}px Atkinson Hyperlegible, Verdana, sans-serif`; g.textAlign = 'center'; g.fillText(Math.round(L - d) + ' m', x, Y.kt - 24 * s); }
+    // trackside advertising boards
+    const bw = 5.2 * ppm, bh = 12 * s, bsp = 23;
+    g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = `700 ${Math.max(3, Math.min(bh * 0.62, bw / 6.2)).toFixed(1)}px Atkinson Hyperlegible, Verdana, sans-serif`;
+    for (let k = Math.floor((cam - px / ppm) / bsp) - 1, k1 = Math.ceil((cam + (W - px) / ppm) / bsp) + 1; k <= k1; k++) {
+      const d = k * bsp + 11, m = ((d % 250) + 250) % 250; if (d < 30 || (d > L - 40 && d < L + 75) || m < 9 || m > 241) continue;
+      const x = wx(d) - bw / 2; if (x > W || x + bw < 0) continue;
+      const kk = ((k % 60) + 60) % 60, pair = T.glow ? ['#120f24', T.kerb[kk & 1]] : BOARD_COLS[kk % BOARD_COLS.length];
+      g.fillStyle = '#5b6070'; g.fillRect(x + bw * 0.12, Y.kt - 3 * s, 2 * s, 3 * s); g.fillRect(x + bw * 0.88 - 2 * s, Y.kt - 3 * s, 2 * s, 3 * s);
+      g.fillStyle = pair[0]; g.fillRect(x, Y.kt - bh - 3 * s, bw, bh);
+      g.fillStyle = pair[1]; g.fillText(SLOGANS[kk % SLOGANS.length], x + bw / 2, Y.kt - bh / 2 - 3 * s + 0.5);
+    }
+    g.textBaseline = 'alphabetic';
+    // kerbs, road and lines
+    const kerb = (y0, y1) => { const sp = 4 * ppm, off = ((C % (2 * sp)) + 2 * sp) % (2 * sp); for (let x = -off - 2 * sp; x < W + sp; x += sp) { g.fillStyle = Math.round((x + off) / sp) % 2 ? T.kerb[0] : T.kerb[1]; g.fillRect(x, y0, sp + 1, y1 - y0); } };
+    kerb(Y.kt, Y.rt);
+    g.fillStyle = T.road; g.fillRect(0, Y.rt, W, Y.rb - Y.rt);
+    gr = g.createLinearGradient(0, Y.rt, 0, Y.rb); gr.addColorStop(0, 'rgba(0,0,0,.25)'); gr.addColorStop(0.25, 'rgba(255,255,255,.04)'); gr.addColorStop(1, 'rgba(0,0,0,.18)'); g.fillStyle = gr; g.fillRect(0, Y.rt, W, Y.rb - Y.rt);
+    if (T.dirt) { g.fillStyle = 'rgba(255,255,255,.06)'; for (let i = 0; i < 40; i++) { const x = ((hsh(i, 7) * W * 2 - C) % W + W) % W, y = Y.rt + hsh(i, 8) * (Y.rb - Y.rt); g.fillRect(x, y, 3 * s, 2 * s); } }
+    const dash = 12 * ppm, dOff = ((C % dash) + dash) % dash;
+    g.fillStyle = T.line;
+    if (T.glow) { g.globalAlpha = 0.25; for (const y of Y.div) for (let x = -dOff; x < W; x += dash) g.fillRect(x - 3 * s, y - 4.5 * s, dash * 0.5 + 6 * s, 9 * s); g.globalAlpha = 1; }
+    for (const y of Y.div) for (let x = -dOff; x < W; x += dash) g.fillRect(x, y - 1.5 * s, dash * 0.5, 3 * s);
+    const chequer = (d) => { const x = wx(d); if (x < -30 || x > W + 30) return; const sq = (Y.rb - Y.rt) / 10; for (let r = 0; r < 10; r++) for (let c2 = 0; c2 < 2; c2++) { g.fillStyle = (r + c2) % 2 ? '#15161c' : '#ffffff'; g.fillRect(x + c2 * sq, Y.rt + r * sq, sq, sq); } };
+    chequer(0); chequer(L);
+    kerb(Y.rb, Y.kb);
+    g.fillStyle = T.verge; g.fillRect(0, Y.kb, W, H - Y.kb);
+    // finish flag
+    const fx = wx(L); if (fx > -60 && fx < W + 60) { g.fillStyle = '#c9d1dc'; g.fillRect(fx - 2 * s, H * 0.12, 4 * s, Y.kt - H * 0.12); const fw = 46 * s, fh = 26 * s; for (let r = 0; r < 4; r++) for (let c2 = 0; c2 < 6; c2++) { const wave = Math.sin(time * 6 + c2 * 0.8) * 3 * s; g.fillStyle = (r + c2) % 2 ? '#15161c' : '#ffffff'; g.fillRect(fx + 2 * s + c2 * fw / 6, H * 0.12 + r * fh / 4 + wave, fw / 6 + 0.5, fh / 4 + 0.5); }
+      g.fillStyle = '#ffd23f'; g.fillRect(fx - 34 * s, H * 0.12 + 34 * s, 68 * s, 16 * s); g.fillStyle = '#15161c'; g.font = `400 ${12 * s}px Racing Sans One, Impact, sans-serif`; g.textAlign = 'center'; g.fillText('FINISH', fx, H * 0.12 + 46 * s); }
+    if (T.embers) for (let i = 0; i < 22; i++) { const t = (time * (0.12 + hsh(i, 1) * 0.1) + hsh(i, 2)) % 1, x = ((hsh(i, 3) * W * 1.5 - C * 0.3) % W + W) % W, y = H * (0.95 - t * 0.8); g.fillStyle = `rgba(255,${120 + Math.floor(hsh(i, 4) * 100)},40,${0.8 * (1 - t)})`; g.fillRect(x + Math.sin(time * 2 + i) * 6 * s, y, 2.2 * s, 2.2 * s); }
+  }
+  const thumbCache = {};
+  function trackThumb(i, w, h) {
+    const key = i + ':' + w + 'x' + h; if (thumbCache[key]) return thumbCache[key];
+    const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d');
+    try { drawScene(g, w, h, TRACKS[i], 30, 1, w / 26, w * 0.3, 2000, null); thumbCache[key] = c.toDataURL('image/png'); } catch (e) { thumbCache[key] = ''; }
+    return thumbCache[key];
+  }
+
+  // ------------------------------------------------------------ car sprites
+  const imgCache = new Map();
+  function carImage(vid, look) {
+    const key = [vid, look.paint, look.livery, look.number].join('|');
+    if (imgCache.has(key)) return imgCache.get(key);
+    const img = new Image(); img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(vehicleSVG(vid, look, { wheels: false }));
+    imgCache.set(key, img); return img;
+  }
+  function hexA(hex, a) { const n = parseInt(hex.slice(1), 16); return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})`; }
+  function drawWheel(g, x, y, r, ang, treads, gold) {
+    g.fillStyle = '#15151b'; g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill();
+    if (treads) { g.fillStyle = '#30303b'; for (let k = 0; k < 14; k++) { const a = ang + k * Math.PI / 7; g.save(); g.translate(x + Math.cos(a) * r * 0.88, y + Math.sin(a) * r * 0.88); g.rotate(a); g.fillRect(-r * 0.08, -r * 0.12, r * 0.16, r * 0.24); g.restore(); } }
+    const rg = g.createRadialGradient(x - r * 0.2, y - r * 0.2, 0, x, y, r * 0.62); rg.addColorStop(0, '#ffffff'); rg.addColorStop(0.6, gold ? '#f0c955' : '#c3cad6'); rg.addColorStop(1, gold ? '#a47812' : '#7c8496');
+    g.fillStyle = rg; g.beginPath(); g.arc(x, y, r * 0.6, 0, Math.PI * 2); g.fill();
+    g.strokeStyle = '#5d6577'; g.lineWidth = Math.max(1, r * 0.12); g.lineCap = 'round'; g.beginPath();
+    for (let k = 0; k < 5; k++) { const a = ang + k * Math.PI * 2 / 5; g.moveTo(x, y); g.lineTo(x + Math.cos(a) * r * 0.55, y + Math.sin(a) * r * 0.55); } g.stroke();
+    g.fillStyle = '#2b2d36'; g.beginPath(); g.arc(x, y, r * 0.17, 0, Math.PI * 2); g.fill();
+  }
+  function drawFlame(g, x, y, len, h, cols, time, seed) {
+    const L2 = len * (0.82 + 0.18 * Math.sin(time * 42 + seed)), c = cols || [`hsl(${(time * 300) % 360} 100% 92%)`, `hsl(${(time * 300 + 60) % 360} 100% 65%)`, `hsl(${(time * 300 + 140) % 360} 100% 55%)`];
+    const gr = g.createLinearGradient(x, y, x - L2, y); gr.addColorStop(0, c[0]); gr.addColorStop(0.35, c[1]); gr.addColorStop(1, cols ? hexA(c[2], 0) : 'rgba(255,255,255,0)');
+    g.fillStyle = gr; g.beginPath(); g.moveTo(x, y - h); g.quadraticCurveTo(x - L2 * 0.45, y - h * 1.3, x - L2, y); g.quadraticCurveTo(x - L2 * 0.45, y + h * 1.3, x, y + h); g.closePath(); g.fill();
+  }
+
+  // ------------------------------------------------------------ sound
+  const Sound = (function () {
+    let ctx = null, out = null, noiseBuf = null, eng = null;
+    function ensure() {
+      if (!save.sound) return null;
+      if (!ctx) { const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null; try { ctx = new AC(); out = ctx.createGain(); out.gain.value = 0.55; out.connect(ctx.destination); noiseBuf = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate); const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; } catch (e) { return null; } }
+      if (ctx.state === 'suspended') { try { ctx.resume(); } catch (e) { /* ignore */ } }
+      return ctx;
+    }
+    function tone(f, t, dur, type, peak, slide) { const o = ctx.createOscillator(), g = ctx.createGain(); o.type = type || 'sine'; o.frequency.setValueAtTime(f, t); if (slide) o.frequency.exponentialRampToValueAtTime(slide, t + dur); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak || 0.2, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); o.connect(g); g.connect(out); o.start(t); o.stop(t + dur + 0.05); }
+    function noise(t, dur, type, f0, f1, peak) { const s = ctx.createBufferSource(); s.buffer = noiseBuf; s.loop = true; const f = ctx.createBiquadFilter(); f.type = type; f.frequency.setValueAtTime(f0, t); if (f1) f.frequency.exponentialRampToValueAtTime(f1, t + dur); const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + 0.03); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); s.connect(f); f.connect(g); g.connect(out); s.start(t); s.stop(t + dur + 0.05); }
+    return {
+      unlock() { ensure(); },
+      beep(hi) { if (!ensure()) return; tone(hi ? 880 : 440, ctx.currentTime + 0.01, hi ? 0.5 : 0.25, 'square', 0.12); },
+      boost(level) { if (!ensure()) return; const t = ctx.currentTime + 0.01; noise(t, 0.45, 'bandpass', 500, 2600, 0.22); tone(330 + level * 60, t, 0.25, 'triangle', 0.1, 660 + level * 120); },
+      nitro() { if (!ensure()) return; const t = ctx.currentTime + 0.01; noise(t, 1.6, 'lowpass', 300, 4000, 0.32); tone(70, t, 1.4, 'sawtooth', 0.1, 140); },
+      wrong() { if (!ensure()) return; const t = ctx.currentTime + 0.01; noise(t, 0.6, 'bandpass', 3200, 1600, 0.18); tone(300, t, 0.5, 'sawtooth', 0.06, 120); },
+      pass() { if (!ensure()) return; const t = ctx.currentTime + 0.01; tone(660, t, 0.12, 'triangle', 0.1); tone(990, t + 0.09, 0.18, 'triangle', 0.1); },
+      lost() { if (!ensure()) return; const t = ctx.currentTime + 0.01; tone(440, t, 0.15, 'triangle', 0.08); tone(330, t + 0.1, 0.2, 'triangle', 0.08); },
+      finish(win) { if (!ensure()) return; const t = ctx.currentTime + 0.01; (win ? [523.25, 659.25, 783.99, 1046.5] : [392, 523.25, 659.25]).forEach((f, k) => tone(f, t + k * 0.12, 0.6, 'triangle', 0.14)); noise(t, 2.4, 'bandpass', 1400, 900, 0.16); },
+      engineStart() { if (!ensure() || eng) return; const o1 = ctx.createOscillator(), o2 = ctx.createOscillator(), f = ctx.createBiquadFilter(), g = ctx.createGain(); o1.type = 'sawtooth'; o2.type = 'square'; o2.detune.value = -1200; f.type = 'lowpass'; f.frequency.value = 500; g.gain.value = 0.0001; o1.connect(f); o2.connect(f); f.connect(g); g.connect(out); o1.start(); o2.start(); g.gain.setTargetAtTime(0.03, ctx.currentTime, 0.2); eng = { o1, o2, f, g }; },
+      engine(v, boost, quiet) { if (!eng || !ctx) return; const t = ctx.currentTime; eng.o1.frequency.setTargetAtTime(45 + v * 3.4, t, 0.08); eng.o2.frequency.setTargetAtTime(45 + v * 3.4, t, 0.08); eng.f.frequency.setTargetAtTime(380 + v * 28, t, 0.1); eng.g.gain.setTargetAtTime(save.sound && !quiet ? 0.022 + (boost ? 0.02 : 0) : 0, t, 0.1); },
+      engineStop() { if (!eng) return; const e = eng; eng = null; try { e.g.gain.setTargetAtTime(0.0001, ctx.currentTime, 0.08); setTimeout(() => { try { e.o1.stop(); e.o2.stop(); } catch (x) { /* ignore */ } }, 400); } catch (x) { /* ignore */ } },
+    };
+  })();
+
+  // ------------------------------------------------------------ the race
+  const cv = $('#cv'), g = cv.getContext('2d');
+  let W = 0, H = 0, dpr = 1, raf = 0, lastT = 0, run = null, paused = false;
+  const parts = [];
+  function sizeCanvas() { const r = cv.getBoundingClientRect(); dpr = Math.min(2, window.devicePixelRatio || 1); W = r.width; H = r.height; cv.width = Math.max(1, Math.round(W * dpr)); cv.height = Math.max(1, Math.round(H * dpr)); }
+  const baseCarW = () => Math.min(W * 0.36, H * 0.5);
+  function makeCar(look, vid, lane, d, power, extra) {
+    const V = vehicle(vid), r = PH.racer(PH.vstats(V.stats), d, power);
+    return Object.assign({ r, look, vid, lane, ang: 0, seed: Math.random() * 10, img: carImage(vid, look), fx: 0 }, extra || {});
+  }
+  const MEDALS = ['bronze', 'silver', 'gold'];
+  const paceLook = (m) => ({ paint: m, livery: 'stripes', number: 3 - MEDALS.indexOf(m) });
+  const paceName = (m) => m.charAt(0).toUpperCase() + m.slice(1) + ' pace';
+  function startRace(i, mode) {
+    const cls = mode === 'gp' ? klass(classOpen(i, save.gpClass) ? save.gpClass : 'pro') : null;
+    Sound.unlock(); $$('.sheet').forEach((s) => { s.hidden = true; }); paused = false;
+    const S = setup(i), V = vehicle(save.vehicle);
+    const me = makeCar(myLook(), V.id, 2, mode === 'gp' ? -21 : 0, S.power, { name: save.name, me: true });
+    run = { mode, vi: i, S, L: S.L, t: 0, state: 'count', me, cars: [me], q: null, input: '', locked: true, mistakes: [], recent: [], coins: 0, correct: 0, wrong: 0, best: 0,
+      rec: [0], recT: 0, ghost: mode === 'tt' ? save.ghosts[VEN[i].id] || null : null, shownPos: 0, posSince: 0, pendPos: 0, final: false, slipT: 0, finishT: 0, hudT: 0, shake: 0,
+      cls, zoom: mode === 'gp' ? 1.5 : 1, nextSplit: 250, split: null, paceMedal: ['bronze', 'silver', 'gold', 'gold'][ttRec(i).medal] };
+    if (mode === 'gp') {
+      const champ = CHAMPS[i], names = RIVALS.slice().sort(() => Math.random() - 0.5).slice(0, 4), slots = [1, 2, 4, 5].sort(() => Math.random() - 0.5), paces = PH.RIVAL_PACE.slice(0, 4).sort(() => Math.random() - 0.5);
+      const grid = [0, -7, -14, -21, -28, -35];
+      const mk = (name, look, vid, slot, pace, isChamp) => { const c = makeCar(look, vid, slot % 2, grid[slot], S.power, { name, champ: isChamp }); c.r.rate = S.rates[1] * pace * cls.pace; c.r.acc = 0.9; c.r.next = (1 / c.r.rate) * (0.6 + Math.random() * 0.8); return c; };
+      run.cars.push(mk(champ.name, { paint: champ.paint, livery: champ.livery, number: champ.number }, champ.vehicle, 0, PH.RIVAL_PACE[4], true));
+      names.forEach((n, k) => { const vid = pickR(VEHICLES).id, pt = pickR(PAINTS.filter((p) => p.id !== save.paint)).id; run.cars.push(mk(n, { paint: pt, livery: pickR(LIVERIES).id, number: 2 + Math.floor(Math.random() * 97) }, vid, slots[k], paces[k], false)); });
+    } else {
+      run.pace = makeCar(paceLook(run.paceMedal), 'super', 0, 0, S.power, { name: paceName(run.paceMedal), ghost: true });
+      if (run.ghost) run.ghostCar = makeCar(myLook(), V.id, 1, 0, S.power, { name: 'Your best', ghost: true });
+    }
+    show('race'); $('#race').classList.toggle('gp', mode === 'gp');
+    $('#hudTrack').textContent = `${i + 1}. ${TRACKS[i].name}`;
+    $('#hudMode').textContent = mode === 'gp' ? `Grand Prix · ${cls.name} class` : `Time Trial · ${vehicle(save.vehicle).name}`;
+    $('#hudRight').innerHTML = mode === 'gp' ? '<div class="pos" id="hudPos">4<small>/6</small></div><div class="hud-time small" id="hudTime">0:00.0</div>' : '<div class="hud-time" id="hudTime">0:00.0</div><div class="pace" id="hudPace"><i></i><span>Ready</span></div>';
+    $('#keyNeg').disabled = !VEN[i].negatives;
+    $('#rLabel').innerHTML = ''; $('#rVal').textContent = ''; $('#rUnit').textContent = '';
+    ['#qGiven', '#qCtx', '#qAsk'].forEach((s) => setOpt(s, '')); $('#qPrompt').textContent = 'Get ready'; $('#qMain').innerHTML = '';
+    parts.length = 0;
+    requestAnimationFrame(() => { sizeCanvas(); cancelAnimationFrame(raf); lastT = 0; raf = requestAnimationFrame(frame); });
+    renderNitro(); countdown();
+  }
+  function countdown() {
+    const box = $('#lights'), lamps = $$('.lamp', box), go = $('#goText'); box.hidden = false; go.hidden = true; lamps.forEach((l) => { l.className = 'lamp'; });
+    let k = 0; Sound.engineStart();
+    const step = () => {
+      if (!run || run.state !== 'count') { box.hidden = true; return; }
+      if (paused) { setTimeout(step, 200); return; }
+      if (k < 3) { lamps[k].classList.add('red'); Sound.beep(false); k++; setTimeout(step, 700); }
+      else { lamps.forEach((l) => { l.className = 'lamp green'; }); go.hidden = false; Sound.beep(true); run.state = 'race'; nextQ(); setTimeout(() => { box.hidden = true; }, 700); }
+    };
+    setTimeout(step, 450);
+  }
+  function setOpt(id, html) { const el = $(id); el.hidden = !html; el.innerHTML = html || ''; }
+  function nextQ() {
+    if (!run || run.state !== 'race') return;
+    const q = QB.generate(run.vi, run.recent); run.recent.push(q.key); if (run.recent.length > 12) run.recent.shift();
+    run.q = q; run.input = ''; run.locked = false;
+    $('#qPrompt').innerHTML = q.prompt; setOpt('#qGiven', q.given); setOpt('#qCtx', q.ctx); setOpt('#qAsk', q.ask);
+    const m = $('#qMain'); m.innerHTML = q.html; m.classList.toggle('multi', q.html.indexOf('class="ml"') !== -1); fitMain();
+    $('#rLabel').innerHTML = q.label; $('#rUnit').textContent = q.unit || ''; renderInput();
+    $('#lcd').classList.remove('ok', 'no');
+  }
+  function fitMain() { const el = $('#qMain'); el.style.fontSize = ''; let s = parseFloat(getComputedStyle(el).fontSize), n = 0; while (el.scrollWidth > el.clientWidth + 1 && s > 15 && n++ < 40) { s -= 2; el.style.fontSize = s + 'px'; } }
+  function renderInput() { $('#rVal').textContent = run ? run.input.replace('-', '−') : ''; }
+  function press(k) {
+    if (!run || run.state !== 'race' || paused) return;
+    if (k === 'nitro') { fireNitro(); return; }
+    if (k === 'enter') { submit(); return; }
+    if (run.locked) return;
+    if (k === 'back') run.input = run.input.slice(0, -1);
+    else if (k === 'neg') { if (!VEN[run.vi].negatives) return; run.input = run.input.charAt(0) === '-' ? run.input.slice(1) : '-' + run.input; }
+    else if (/^\d$/.test(k)) { const dg = run.input.replace('-', ''); if (dg.length >= 4) return; if (dg === '0') run.input = run.input.replace('0', ''); run.input += k; }
+    renderInput();
+  }
+  function submit() {
+    if (!run || run.locked || run.state !== 'race') return;
+    const s = run.input; if (s === '' || s === '-') { const l = $('#lcd'); l.classList.remove('nudge'); void l.offsetWidth; l.classList.add('nudge'); return; }
+    if (parseInt(s, 10) === run.q.answer) onRight(); else onWrong(parseInt(s, 10));
+  }
+  function answerHTML(q) { const a = num(q.answer); if (q.label === '=') return a + (q.unit ? ' ' + q.unit : ''); return q.label + (/£$/.test(q.label) ? '' : ' ') + a + (q.unit ? ' ' + q.unit : ''); }
+  // Callouts with a higher priority (spin outs, overtakes, the finish) are not wiped out by everyday boosts.
+  let coUntil = 0, coPrio = 0;
+  function callout(html, cls, prio) { prio = prio || 0; const now = performance.now(); if (prio < coPrio && now < coUntil) return; coPrio = prio; coUntil = now + (cls === 'bad' ? 1400 : 850); const st = $('#stage'); $$('.callout', st).forEach((c) => c.remove()); const c = document.createElement('div'); c.className = 'callout' + (cls ? ' ' + cls : ''); c.innerHTML = html; st.appendChild(c); setTimeout(() => c.remove(), cls === 'bad' ? 1500 : 950); }
+  function onRight() {
+    const me = run.me.r; PH.hit(me); run.correct++; run.best = Math.max(run.best, me.streak);
+    run.coins += 2 + Math.floor(Math.min(me.streak, 6) / 2);
+    const mult = PH.combo(me.streak);
+    callout(mult > 1 ? `Combo ×${me.streak}<small>Boost ×${mult.toFixed(1)}</small>` : pickR(['Boost!', 'Zoom!', 'Turbo!', 'Vroom!']));
+    Sound.boost(Math.min(4, Math.floor(me.streak / 2))); burst(run.me, 14, 'spark');
+    $('#lcd').classList.add('ok'); $('#live').textContent = 'Correct.';
+    run.locked = true; setTimeout(nextQ, 230); renderNitro();
+  }
+  function onWrong(val) {
+    const me = run.me.r; PH.miss(me); run.wrong++; run.mistakes.push({ q: run.q, given: val });
+    callout(`Spin out!<small>It was ${answerHTML(run.q)}</small>`, 'bad', 2); Sound.wrong(); burst(run.me, 16, 'smoke');
+    $('#lcd').classList.add('no'); $('#live').textContent = 'Not quite. The answer was ' + num(run.q.answer) + '.';
+    run.locked = true; setTimeout(nextQ, 1350); renderNitro();
+  }
+  function fireNitro() { if (!run || run.state !== 'race') return; if (PH.nitro(run.me.r)) { Sound.nitro(); callout('NITRO!', 'cyan', 1); run.shake = 0.5; burst(run.me, 24, 'spark'); renderNitro(); } }
+  function renderNitro() { const b = $('#nitroBtn'), r = run && run.me.r; const f = r ? (r.nitroT > 0 ? r.nitroT / r.nt : r.nitro) : 0; b.style.setProperty('--fill', f.toFixed(3)); const ready = !!(r && r.nitro >= 1 && r.nitroT <= 0 && run.state === 'race'); b.disabled = !ready; b.classList.toggle('ready', ready); b.classList.toggle('firing', !!(r && r.nitroT > 0)); }
+  function burst(car, n, kind) { for (let k = 0; k < n; k++) parts.push({ car, kind, x: 0, y: 0, vx: -(40 + Math.random() * 120), vy: (Math.random() - 0.5) * 80 - (kind === 'smoke' ? 30 : 0), life: 0, max: 0.4 + Math.random() * 0.5, init: false, size: 1 + Math.random() * 2.5 }); }
+  function ghostT(d) { const gh = run.ghost; if (!gh) return 0; for (let k = 1; k < gh.length; k++) if (gh[k] >= d) { const a = gh[k - 1], b = gh[k]; return (k - 1 + (b > a ? (d - a) / (b - a) : 0)) * 0.25; } return 0; }
+  function paceT(medal, d) { const S = run.S, c = S.curves[medal]; return PH.timeAt(c, d) / scaled(c, S.targets[medal]); }
+  function ghostD(t) { const gh = run.ghost; if (!gh || !gh.length) return 0; const i = t / 0.25, k = Math.floor(i); if (k >= gh.length - 1) return gh[gh.length - 1] + (t - (gh.length - 1) * 0.25) * 10; return gh[k] + (gh[k + 1] - gh[k]) * (i - k); }
+  const scaled = (curve, target) => curve.T / target;
+  function paceD(medal, t) { const S = run.S, c = S.curves[medal]; return PH.distAt(c, t * scaled(c, S.targets[medal])); }
+  function standings() { return run.cars.slice().sort((a, b) => (a.r.done && b.r.done) ? a.r.finishT - b.r.finishT : (a.r.done ? -1 : b.r.done ? 1 : b.r.d - a.r.d)); }
+  function update(dt) {
+    run.t += dt; const me = run.me, L = run.L, others = run.cars.filter((c) => !c.me);
+    if (run.mode === 'gp') {
+      me.r.slip = run.state === 'race' && others.some((o) => o.r.d - me.r.d > 3 && o.r.d - me.r.d < 14);
+      for (const c of others) {
+        const r = c.r;
+        if (!r.done) { const ev = PH.rivalThink(r, run.t, r.d - me.r.d, Math.random); if (ev === 'hit') c.fx = 0.5; if (ev === 'nitro') c.fx = r.nt; }
+        r.slip = !r.done && run.cars.some((o) => o !== c && o.r.d - r.d > 3 && o.r.d - r.d < 14);
+        PH.step(r, dt); if (r.done && r.v > r.st.cruise) r.v = r.st.cruise;
+        if (!r.done && r.d >= L) { r.done = true; r.finishT = run.t - (r.d - L) / r.v; }
+        c.ang += r.v * dt / 0.33; if (c.fx > 0) c.fx -= dt;
+      }
+    } else {
+      const drive = (c, d) => { if (!c) return; const v = Math.max(0, (d - c.r.d) / Math.max(dt, 0.001)); c.r.v += (v - c.r.v) * 0.25; c.r.d = d; c.ang += c.r.v * dt / 0.33; };
+      const k = MEDALS.indexOf(run.paceMedal);
+      if (run.state === 'race' && k < 2 && run.t > 6 && run.t - (run.paceUp || 0) > 8 && me.r.d - run.pace.r.d > 8) {
+        const was = run.paceMedal, nm = MEDALS[k + 1]; run.paceMedal = nm; run.paceUp = run.t; const c = run.pace; c.look = paceLook(nm); c.img = carImage('super', c.look); c.name = paceName(nm); c.r.d = paceD(nm, run.t);
+        callout(`${paceName(was).replace(' pace', '')} pace beaten!<small>Now chase ${nm}</small>`, '', 1); Sound.pass();
+      }
+      drive(run.pace, paceD(run.paceMedal, run.t)); if (run.ghostCar) drive(run.ghostCar, ghostD(run.t));
+    }
+    PH.step(me.r, dt); me.ang += me.r.v * dt / 0.33;
+    if (run.state === 'finished' && me.r.v > me.r.st.cruise) me.r.v -= dt * 8;
+    if (run.mode === 'tt' && run.state === 'race') { run.recT += dt; while (run.recT >= 0.25) { run.recT -= 0.25; run.rec.push(Math.round(me.r.d * 10) / 10); } }
+    if (run.state === 'race') {
+      if (run.mode === 'gp') {
+        const pos = standings().indexOf(me) + 1;
+        if (!run.shownPos) run.shownPos = pos;
+        if (pos !== run.shownPos) { if (pos !== run.pendPos) { run.pendPos = pos; run.posSince = run.t; } else if (run.t - run.posSince > 0.35) { const up = pos < run.shownPos; run.shownPos = pos; callout(up ? `Overtake!<small>Up to ${ord(pos)}</small>` : `Overtaken!<small>Down to ${ord(pos)}</small>`, up ? '' : 'bad', 1); (up ? Sound.pass : Sound.lost)(); $('#live').textContent = `You are ${ord(pos)}.`; } }
+        else run.pendPos = 0;
+      }
+      if (me.r.slip) { run.slipT += dt; } else run.slipT = 0;
+      if (run.mode === 'tt' && me.r.d >= run.nextSplit) {
+        const d = run.nextSplit; run.nextSplit += 250;
+        const ref = run.ghost ? ghostT(d) : paceT(run.paceMedal, d);
+        if (d < L - 60 && ref > 0) { const diff = run.t - ref; run.split = { diff, vs: run.ghost ? 'your best' : run.paceMedal, until: run.t + 3.5 }; (diff <= 0 ? Sound.pass : Sound.lost)(); renderHud(); }
+      }
+      if (!run.final && me.r.d > L * 0.85) { run.final = true; callout('Final stretch!', '', 1); }
+      if (me.r.d >= L) finishRace();
+    }
+    if ((run.hudT += dt) > 0.1) { run.hudT = 0; renderHud(); renderNitro(); }
+    Sound.engine(me.r.v, me.r.nitroT > 0);
+  }
+  function renderHud() {
+    const t = run.state === 'race' ? run.t : run.finishT || run.t; const ht = $('#hudTime'); if (ht) ht.textContent = clock(t);
+    if (run.mode === 'gp') { const p = $('#hudPos'); if (p) p.innerHTML = (run.shownPos || 4) + '<small>/6</small>'; }
+    else if (run.state === 'race') {
+      const d = run.me.r.d, S = run.S, el = $('#hudPace');
+      let label = 'Off the pace', col = 'var(--mist)';
+      if (run.t < 1.5) label = 'Go go go!'; else for (const [m, c, l] of [['gold', 'var(--gold)', 'Gold pace'], ['silver', 'var(--silver)', 'Silver pace'], ['bronze', 'var(--bronze)', 'Bronze pace']]) if (d >= paceD(m, run.t) - 0.5) { label = l; col = c; break; }
+      const sp = run.split && run.t < run.split.until ? run.split : null;
+      if (sp) { const good = sp.diff <= 0; col = good ? 'var(--lime)' : '#ff7b7b'; label = `${good ? '\u2212' : '+'}${Math.abs(sp.diff).toFixed(1)}s vs ${sp.vs}`; }
+      if (el) el.innerHTML = `<i style="background:${col}"></i><span style="color:${col}">${label}</span>`;
+    }
+  }
+  function finishRace() {
+    const me = run.me.r; run.state = 'finished'; run.finishT = run.t - (me.d - run.L) / Math.max(1, me.v); me.done = true; me.finishT = run.finishT; run.locked = true;
+    if (run.mode === 'tt') run.rec.push(run.L);
+    const place = run.mode === 'gp' ? 1 + run.cars.filter((c) => !c.me && c.r.done && c.r.finishT < run.finishT).length : 0;
+    const close = run.mode === 'gp' && run.cars.some((c) => !c.me && Math.abs((c.r.done ? c.r.finishT : run.finishT + (run.L - c.r.d) / Math.max(1, c.r.v)) - run.finishT) < 0.35);
+    callout(run.mode === 'gp' ? (close ? `Photo finish!<small>${ord(place)} place</small>` : `${ord(place)}!<small>${place === 1 ? 'You win!' : 'Across the line'}</small>`) : `Finish!<small>${clock(run.finishT)}</small>`, '', 3);
+    Sound.finish(run.mode === 'tt' || place <= 3); burst(run.me, 40, 'confetti');
+    setTimeout(() => { Sound.engineStop(); showResults(); }, 2600);
+  }
+  // drawing
+  function frame(ts) {
+    raf = requestAnimationFrame(frame);
+    const dt = Math.min(0.05, (ts - (lastT || ts)) / 1000); lastT = ts;
+    if (!run) return; if (!W) sizeCanvas();
+    if (!paused && !sheetOpen() && (run.state === 'race' || run.state === 'finished')) update(dt);
+    render(ts / 1000, dt);
+  }
+  function render(time, dt) {
+    const me = run.me, base = baseCarW(), px = W * (run.mode === 'gp' ? 0.34 : 0.3), Y = layout(H), T = TRACKS[run.vi];
+    // TV camera: in a Grand Prix the shot widens so nearby rivals stay in view
+    let want = 1;
+    if (run.mode === 'gp') {
+      const ppm0 = base / 9, ahead = (W - px) / ppm0, behind = px / ppm0;
+      for (const c of run.cars) { if (c.me) continue; const gap = c.r.d - me.r.d;
+        if (gap >= 0) want = Math.max(want, 1 + ((gap + 5.5) / ahead - 1) * Math.max(0, Math.min(1, (30 - gap) / 8)));
+        else want = Math.max(want, 1 + ((5.5 - gap) / behind - 1) * Math.max(0, Math.min(1, (12 + gap) / 4))); }
+    }
+    want = Math.min(1.7, Math.max(1, want));
+    run.zoom += (want - run.zoom) * (1 - Math.exp(-Math.max(dt, 0.001) / 0.6));
+    const cw = base / run.zoom, ppm = cw / 9, cam = { cw, ppm, px, Y }; run.cam = cam;
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    if (run.shake > 0 && !reduceMotion) { run.shake -= dt; g.translate((Math.random() - 0.5) * 3, (Math.random() - 0.5) * 3); }
+    drawScene(g, W, H, T, me.r.d, time, ppm, px, run.L, { finishing: me.r.d > run.L - 60 });
+    const list = run.cars.slice(); if (run.pace) list.push(run.pace); if (run.ghostCar) list.push(run.ghostCar);
+    list.sort((a, b) => a.lane - b.lane || (a.me ? 1 : 0) - (b.me ? 1 : 0));
+    for (const c of list) {
+      const x = px + (c.r.d - me.r.d) * ppm, sc = LANE_SC[c.lane]; if (x < -cw || x > W + cw) continue;
+      drawCar(c, x, Y.lanes[c.lane], cw * sc, c.ghost ? 0.45 : 1, time);
+      if (!c.me && (run.mode === 'gp' || c.ghost)) tag(x, Y.lanes[c.lane] - cw * sc * 0.55, c.ghost ? c.name : first(c.name), c.ghost ? (c === run.pace ? paint(c.look.paint).c : '#ffffff') : paint(c.look.paint).c, c.champ);
+    }
+    // particles
+    for (let i = parts.length - 1; i >= 0; i--) {
+      const p = parts[i]; if (!p.init) { const ex = carPoint(p.car, cam, p.kind); p.x = ex[0]; p.y = ex[1]; p.init = true; }
+      p.life += dt; if (p.life > p.max) { parts.splice(i, 1); continue; }
+      p.x += p.vx * dt; p.y += p.vy * dt; const a = 1 - p.life / p.max;
+      if (p.kind === 'smoke') { g.fillStyle = `rgba(214,214,224,${0.55 * a})`; g.beginPath(); g.arc(p.x, p.y, (4 + p.life * 34) * p.size * 0.5 * cw / 110, 0, Math.PI * 2); g.fill(); }
+      else if (p.kind === 'confetti') { g.fillStyle = ['#ffd23f', '#ff4fa3', '#28e0ff', '#8dff5a', '#ffffff'][i % 5]; g.fillRect(p.x + (i % 7) * 20 - 60, p.y - 80 + p.life * 120, 4, 6); }
+      else { g.fillStyle = `rgba(255,${200 + Math.floor(55 * a)},120,${a})`; g.fillRect(p.x, p.y, p.size * 2, p.size); }
+    }
+    // speed lines
+    const extra = me.r.v - me.r.st.cruise;
+    if (extra > 5 && !reduceMotion) { const n = Math.min(26, Math.floor(extra / 1.4)); g.strokeStyle = 'rgba(255,255,255,.28)'; g.lineWidth = 1.5; g.beginPath(); for (let k = 0; k < n; k++) { const y = Y.rt * 0.4 + Math.random() * (H - Y.rt * 0.4), x = Math.random() * W, l = 20 + Math.random() * 60 * (extra / 20); g.moveTo(x, y); g.lineTo(x - l, y); } g.stroke(); }
+    if (run.slipT > 0.2) { g.font = `400 ${Math.round(13 * H / 300 + 4)}px Racing Sans One, Impact, sans-serif`; g.textAlign = 'center'; g.fillStyle = '#28e0ff'; g.fillText('SLIPSTREAM', px, Y.lanes[2] - cw * 0.62); }
+    hudCanvas(time, cam);
+  }
+  function carPoint(c, cam, kind) {
+    const w = cam.cw * LANE_SC[c.lane], h = w / 2, x = cam.px + (c.r.d - run.me.r.d) * cam.ppm, left = x - w / 2, top = cam.Y.lanes[c.lane] - h * 0.96, V = VDEF[c.vid];
+    if (kind === 'smoke') { const wh = V.wheels[0] || [V.pads[0][0], V.pads[0][1], 4]; return [left + wh[0] / 200 * w, top + (wh[1] + wh[2] * 0.7) / 100 * h]; }
+    return [left + V.exhaust[0] / 200 * w, top + V.exhaust[1] / 100 * h];
+  }
+  function drawCar(c, x, by, w, alpha, time) {
+    const h = w / 2, left = x - w / 2, top = by - h * 0.96, V = VDEF[c.vid], r = c.r;
+    g.save(); g.globalAlpha = alpha;
+    g.fillStyle = 'rgba(0,0,0,.32)'; g.beginPath(); g.ellipse(x, by + 1, w * 0.44, h * 0.07, 0, 0, Math.PI * 2); g.fill();
+    let sx = 1, bob = Math.sin(time * 19 + c.seed) * Math.min(1, r.v / 25) * w * 0.004;
+    if (c.vid === 'hover') bob = Math.sin(time * 4 + c.seed) * w * 0.02;
+    if (r.spinT > 0 && !reduceMotion) { const p = Math.max(0, Math.min(1, 1 - r.spinT / r.st.spin)), turns = r.st.spin > 1.6 ? 2 : 1; sx = Math.cos(p * Math.PI * 2 * turns); if (Math.abs(sx) < 0.14) sx = sx < 0 ? -0.14 : 0.14; bob -= Math.sin(p * Math.PI) * h * 0.14; }
+    g.translate(x, by); g.scale(sx, 1); g.translate(-x, -by + bob);
+    const boosting = r.nitroT > 0 || r.v > r.st.cruise + 4 || c.fx > 0;
+    if (boosting) { const ex = left + V.exhaust[0] / 200 * w, ey = top + V.exhaust[1] / 100 * h, big = r.nitroT > 0; const cols = c.me ? trail(save.trail).cols : TRAILS[0].cols; drawFlame(g, ex, ey, w * (big ? 0.42 : 0.2 + Math.min(0.15, (r.v - r.st.cruise) / 120)), h * (big ? 0.1 : 0.06), cols, time, c.seed); }
+    if (V.pads) V.pads.forEach(([px2, py2]) => { const gx = left + px2 / 200 * w, gy = top + (py2 + 6) / 100 * h; const gr = g.createRadialGradient(gx, gy, 0, gx, gy, w * 0.12); gr.addColorStop(0, 'rgba(191,247,255,.9)'); gr.addColorStop(1, 'rgba(40,224,255,0)'); g.fillStyle = gr; g.beginPath(); g.ellipse(gx, gy, w * 0.12, h * 0.1, 0, 0, Math.PI * 2); g.fill(); });
+    if (c.img.complete && c.img.naturalWidth) g.drawImage(c.img, left, top, w, h);
+    else { g.fillStyle = paint(c.look.paint).c; g.fillRect(left + w * 0.1, top + h * 0.4, w * 0.8, h * 0.35); }
+    V.wheels.forEach(([wx2, wy2, wr]) => drawWheel(g, left + wx2 / 200 * w, top + wy2 / 100 * h, wr / 200 * w, c.ang * (16 / wr), V.treads, c.look.paint === 'gold'));
+    g.restore();
+  }
+  function tag(x, y, text, col, champ) {
+    const s = H / 300, fs = Math.round(10 * s + 3); g.font = `700 ${fs}px Atkinson Hyperlegible, Verdana, sans-serif`; const label = (champ ? '★ ' : '') + text, w = g.measureText(label).width + 16;
+    g.fillStyle = 'rgba(10,12,18,.72)'; g.beginPath(); g.roundRect ? g.roundRect(x - w / 2, y - fs - 6, w, fs + 8, 6) : g.rect(x - w / 2, y - fs - 6, w, fs + 8); g.fill();
+    g.fillStyle = col; g.fillRect(x - w / 2, y - fs - 6, 4, fs + 8); g.fillStyle = '#fff'; g.textAlign = 'center'; g.fillText(label, x + 2, y - 4);
+  }
+  function rrect(x, y, w, h, r) { g.beginPath(); if (g.roundRect) g.roundRect(x, y, w, h, r); else g.rect(x, y, w, h); }
+  function hudCanvas(time, cam) {
+    const { cw, ppm, px, Y } = cam, s = H / 300, me = run.me, L = run.L, x0 = 12, x1 = W - 40, y = 12;
+    g.fillStyle = 'rgba(10,12,18,.6)'; rrect(x0 - 6, y - 7, x1 - x0 + 34, 14, 7); g.fill();
+    const pos = (d) => x0 + Math.max(0, Math.min(1, d / L)) * (x1 - x0);
+    g.fillStyle = 'rgba(255,255,255,.18)'; g.fillRect(x0, y - 1.5, x1 - x0, 3);
+    for (let k = 0; k < 4; k++) for (let j = 0; j < 2; j++) { g.fillStyle = (k + j) % 2 ? '#15161c' : '#fff'; g.fillRect(x1 + 4 + k * 3.5, y - 5 + j * 5, 3.5, 5); }
+    if (run.mode === 'tt' && run.state !== 'count') { [['bronze', '#d9894a'], ['silver', '#d5dbe6'], ['gold', '#ffcf40']].forEach(([m, c]) => { const x = pos(paceD(m, run.t)); g.fillStyle = c; g.fillRect(x - 1.5, y - 6, 3, 12); }); if (run.ghostCar) { g.fillStyle = 'rgba(255,255,255,.7)'; g.beginPath(); g.arc(pos(run.ghostCar.r.d), y, 4, 0, Math.PI * 2); g.fill(); } }
+    run.cars.forEach((c) => { if (c.me) return; g.fillStyle = paint(c.look.paint).c; g.strokeStyle = '#000'; g.lineWidth = 1; g.beginPath(); g.arc(pos(c.r.d), y, 4.5, 0, Math.PI * 2); g.fill(); g.stroke(); });
+    g.fillStyle = paint(save.paint).c; g.strokeStyle = '#fff'; g.lineWidth = 2; g.beginPath(); g.arc(pos(me.r.d), y, 6, 0, Math.PI * 2); g.fill(); g.stroke();
+    // speedometer
+    const kmh = Math.round(me.r.v * 7.2), sx = W - 14, sy = 44 * Math.max(0.8, s);
+    g.textAlign = 'right'; g.fillStyle = me.r.nitroT > 0 ? '#28e0ff' : '#ffffff'; g.font = `400 ${Math.round(24 * Math.max(0.8, s))}px Racing Sans One, Impact, sans-serif`; g.shadowColor = '#000'; g.shadowBlur = 6; g.fillText(String(kmh), sx, sy); g.font = `700 ${Math.round(10 * Math.max(0.8, s))}px Atkinson Hyperlegible, sans-serif`; g.fillText('km/h', sx, sy + 13); g.shadowBlur = 0;
+    // timing tower: everyone's place and how far they are from you
+    if (run.mode === 'gp') {
+      const ts = Math.max(0.78, Math.min(1.15, H / 330)), rowH = Math.round(15 * ts), fs = Math.round(10.5 * ts), tx = 8, ty = 26, tw = Math.round(112 * ts);
+      standings().forEach((c, k) => {
+        const yy = ty + k * (rowH + 2), you = c.me;
+        g.fillStyle = you ? 'rgba(255,210,63,.96)' : 'rgba(10,12,18,.74)'; rrect(tx, yy, tw, rowH, 4); g.fill();
+        g.textAlign = 'center'; g.fillStyle = you ? '#15161c' : '#ffd23f'; g.font = `400 ${fs + 2}px Racing Sans One, Impact, sans-serif`; g.fillText(String(k + 1), tx + 9 * ts, yy + rowH * 0.78);
+        g.fillStyle = you ? '#15161c' : paint(c.look.paint).c; g.fillRect(tx + 18 * ts, yy + 3, 3 * ts, rowH - 6);
+        g.textAlign = 'left'; g.fillStyle = you ? '#15161c' : '#ffffff'; g.font = `700 ${fs}px Atkinson Hyperlegible, Verdana, sans-serif`; g.fillText(you ? 'You' : (c.champ ? '★ ' : '') + first(c.name), tx + 25 * ts, yy + rowH * 0.74);
+        if (!you) { const gap = Math.abs(c.r.d - me.r.d); g.textAlign = 'right'; g.fillStyle = '#a9b0c3'; g.fillText(c.r.done && !me.r.done ? 'Done' : Math.round(gap) + 'm', tx + tw - 5 * ts, yy + rowH * 0.74); }
+      });
+    }
+    // who is just off screen
+    const edge = (c, right) => { const gap = Math.round(Math.abs(c.r.d - me.r.d)), nm = c.ghost ? c.name : (c.champ ? '★ ' : '') + first(c.name); const text = (right ? '' : '◀ ') + nm + ' ' + (right ? '+' : '−') + gap + ' m' + (right ? ' ▶' : ''); g.font = `700 ${Math.round(10 * s + 3)}px Atkinson Hyperlegible, sans-serif`; const w = g.measureText(text).width + 14, yy = Y.lanes[c.lane] - cw * LANE_SC[c.lane] * 0.24, xx = right ? W - w - 6 : 6;
+      g.fillStyle = 'rgba(10,12,18,.78)'; rrect(xx, yy - 14, w, 20, 6); g.fill(); g.fillStyle = paint(c.look.paint).c; g.fillRect(right ? xx + w - 3 : xx, yy - 14, 3, 20); g.fillStyle = '#fff'; g.textAlign = 'left'; g.fillText(text, xx + 7, yy); };
+    const pool = run.mode === 'gp' ? run.cars.filter((c) => !c.me) : [run.pace, run.ghostCar].filter(Boolean);
+    const ahead = pool.filter((c) => px + (c.r.d - me.r.d) * ppm > W + cw * 0.2).sort((a, b) => a.r.d - b.r.d)[0];
+    const behind = pool.filter((c) => px + (c.r.d - me.r.d) * ppm < -cw * 0.2).sort((a, b) => b.r.d - a.r.d)[0];
+    if (ahead) edge(ahead, true); if (behind) edge(behind, false);
+  }
+
+  // ------------------------------------------------------------ results
+  function showResults() {
+    cancelAnimationFrame(raf);
+    const r = run, i = r.vi, id = VEN[i].id, S = r.S, before = { tt: VEN.map((_, k) => isOpen('tt', k)), gp: VEN.map((_, k) => isOpen('gp', k)), veh: VEHICLES.filter(vehicleOpen).map((v) => v.id), rank: rankFor(points()).name };
+    const news = []; let html = '';
+    const statsHTML = `<dl class="res-stats"><div><dt>Right</dt><dd>${r.correct}</dd></div><div><dt>Best combo</dt><dd>×${r.best}</dd></div><div><dt>Coins</dt><dd id="resCoins">+0</dd></div></dl>`;
+    if (r.mode === 'tt') {
+      const t = r.finishT, T = S.targets, medal = t <= T.gold ? 3 : t <= T.silver ? 2 : t <= T.bronze ? 1 : 0, old = ttRec(i), newBest = !old.best || t < old.best;
+      save.tt[id] = { best: newBest ? Math.round(t * 10) / 10 : old.best, medal: Math.max(old.medal, medal) };
+      if (newBest) save.ghosts[id] = r.rec;
+      r.coins += [5, 15, 25, 40][medal] + (newBest && old.best ? 10 : 0);
+      const mName = ['No medal yet', 'Bronze medal', 'Silver medal', 'Gold medal'][medal];
+      html = `<div class="res-head">Time Trial · Track ${i + 1} · ${TRACKS[i].name}</div><h2 class="res-big" id="resTitle">${clock(t)}</h2>
+        <div class="res-medal">${medal ? medalSVG(medal) : ''}<span style="color:${['var(--mist)', 'var(--bronze)', 'var(--silver)', 'var(--gold)'][medal]}">${mName}</span></div>
+        <ul class="targets"><li class="${medal >= 3 ? 'met' : ''}">Gold<b>${clock(T.gold)}</b></li><li class="${medal >= 2 ? 'met' : ''}">Silver<b>${clock(T.silver)}</b></li><li class="${medal >= 1 ? 'met' : ''}">Bronze<b>${clock(T.bronze)}</b></li></ul>
+        <p class="muted">${newBest && old.best ? `New personal best! ${(old.best - t).toFixed(1)}s faster than before.` : old.best ? `Your best is ${clock(old.best)}. ${(t - old.best).toFixed(1)}s off it this time.` : 'Your ghost car will race you next time.'}</p>${statsHTML}`;
+      if (!medal) news.push(['', `Beat ${clock(T.bronze)} for a bronze medal and the next track.`]);
+      else if (medal < 3) news.push(['', `${(t - (medal === 2 ? T.gold : T.silver)).toFixed(1)}s faster next time for ${medal === 2 ? 'gold' : 'silver'}.`]);
+      else news.push(['hot', 'Gold! That is a track record pace.']);
+    } else {
+      const fin = r.cars.map((c) => ({ c, t: c.me ? r.finishT : c.r.done ? c.r.finishT : simFinish(c) })).sort((a, b) => a.t - b.t);
+      const place = fin.findIndex((f) => f.c.me) + 1, old = gpRec(i), champ = r.cars.find((c) => c.champ), beatChamp = fin.findIndex((f) => f.c === champ) > place - 1, cid = r.cls.id, champWasOpen = classOpen(i, 'champ');
+      const cls = Object.assign({}, old.cls); cls[cid] = cls[cid] ? Math.min(cls[cid], place) : place;
+      save.gp[id] = { best: old.best ? Math.min(old.best, place) : place, wins: (old.wins || 0) + (place === 1 ? 1 : 0), cls };
+      r.coins += Math.round([60, 40, 25, 12, 8, 5][place - 1] * r.cls.coins);
+      const podium = [1, 0, 2].map((k) => { const f = fin[k]; return `<div class="step p${k + 1}${f.c.me ? ' you' : ''}"><div class="car">${vehicleSVG(f.c.vid, f.c.look, { w: 200, h: 100 })}</div><b>${f.c.me ? 'You' : f.c.name}</b><div class="block">${k + 1}</div></div>`; }).join('');
+      html = `<div class="res-head">Grand Prix · ${r.cls.name} class · Track ${i + 1} · ${TRACKS[i].name}</div><h2 class="res-big" id="resTitle" style="color:${place <= 3 ? ['', 'var(--gold)', 'var(--silver)', 'var(--bronze)'][place] : 'var(--chalk)'}">${ord(place)} place</h2>
+        <div class="podium">${podium}</div>
+        <ol class="classif">${fin.map((f, k) => `<li class="${f.c.me ? 'you' : ''}"><span class="p">${k + 1}</span><i class="dot" style="background:${paint(f.c.look.paint).c}"></i><span class="nm">${f.c.me ? save.name + ' (you)' : (f.c.champ ? '★ ' : '') + f.c.name}</span><span class="gap">${k === 0 ? clock(f.t) : '+' + (f.t - fin[0].t).toFixed(1) + 's'}</span></li>`).join('')}</ol>${statsHTML}`;
+      if (place === 1) news.push(['hot', `You won the ${TRACKS[i].name} Grand Prix!`]);
+      else if (place <= 3) news.push(['hot', `A podium finish. ${place === 2 ? 'One more place for the win.' : 'Two places to go for the win.'}`]);
+      else news.push(['', `Finish in the top 3 to open the next Grand Prix track. Time Trial practice helps.`]);
+      if (beatChamp) news.push(['hot', `You beat the track champion, ${champ.name}!`]);
+      if (!champWasOpen && classOpen(i, 'champ')) news.push(['hot', `Champion class is open on ${TRACKS[i].name}. The fastest rivals in the game!`]);
+      else if (cid === 'rookie' && place <= 3 && !old.cls.pro) news.push(['', 'Ready for Pro class? Tougher rivals and bigger prizes.']);
+    }
+    save.coins += r.coins; persist();
+    VEN.forEach((_, k) => { if (isOpen('tt', k) && !before.tt[k]) news.push(['hot', `Time Trial unlocked: Track ${k + 1}, ${TRACKS[k].name}.`]); if (isOpen('gp', k) && !before.gp[k]) news.push(['hot', `Grand Prix unlocked: Track ${k + 1}, ${TRACKS[k].name}.`]); });
+    VEHICLES.forEach((v) => { if (vehicleOpen(v) && !before.veh.includes(v.id)) news.push(['hot', `New vehicle unlocked: the ${v.name}! Try it in the Garage.`]); });
+    const rk = rankFor(points()).name; if (rk !== before.rank) news.push(['hot', `Licence upgraded: ${rk}.`]);
+    const cheapest = PAINTS.concat(LIVERIES, TRAILS).filter((x) => x.cost > 0 && !Object.values(save.owned).flat().includes(x.id)).sort((a, b) => a.cost - b.cost)[0];
+    if (cheapest && save.coins >= cheapest.cost) news.push(['', `You have ${fmt(save.coins)} coins. Spend them on paint, liveries and nitro trails in the Garage.`]);
+    $('#resCard').innerHTML = html;
+    $('#news').innerHTML = news.map(([c, t]) => `<p class="${c}">${t}</p>`).join('');
+    const nextI = i + 1; $('#nextBtn').hidden = !(nextI < VEN.length && isOpen(r.mode, nextI));
+    $('#fixes').hidden = !r.mistakes.length;
+    $('#fixList').innerHTML = r.mistakes.map((m) => `<li class="fix">${qBlock(m.q)}<div class="a">You typed ${num(m.given)}. The answer is <b class="math">${answerHTML(m.q)}</b>.</div><details><summary>Show me how</summary><ol class="steps">${m.q.steps.map((s2) => `<li><span class="s-m math">${s2.m}</span>${s2.n ? `<span class="s-n">${s2.n}</span>` : ''}</li>`).join('')}</ol></details></li>`).join('');
+    show('results');
+    let shown = 0; const target = r.coins, el = $('#resCoins'); const tick = () => { shown = Math.min(target, shown + Math.max(1, Math.ceil(target / 25))); if (el) el.textContent = '+' + shown; if (shown < target) setTimeout(tick, 30); }; tick();
+  }
+  function simFinish(c) { const r = Object.assign({}, c.r); let t = run.t; while (r.d < run.L && t < run.t + 400) { PH.step(r, 0.05); t += 0.05; } return t; }
+  const qBlock = (q) => (q.ctx ? `<div class="ctx">${q.ctx}</div>` : '') + `<div class="q math">${[q.given ? q.given + ', work out' : '', q.html].filter(Boolean).join(' ')}</div>` + (q.ask ? `<div class="ctx math">${q.ask}</div>` : '');
+  function medalSVG(m) { const c = ['', '#d9894a', '#d5dbe6', '#ffcf40'][m], d = ['', '#8a4f22', '#8a93a6', '#b9860b'][m]; return `<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M12 2h6l3 10h-6Z" fill="#e63946"/><path d="M22 2h6l-3 10h-6Z" fill="#2f6bff"/><circle cx="20" cy="25" r="13" fill="${c}" stroke="${d}" stroke-width="2"/><circle cx="20" cy="25" r="8.5" fill="none" stroke="${d}" stroke-width="1.5" opacity=".6"/><path transform="translate(13.5 18.5) scale(.65)" d="${STAR}" fill="${d}"/></svg>`; }
+  function trophySVG(p) { if (!p) return '<svg class="medal" viewBox="0 0 40 40" aria-hidden="true"><path d="M11 6h18v8a9 9 0 0 1-18 0Z M17 23h6v6h-6Z M12 31h16v5H12Z" fill="none" stroke="#4b5370" stroke-width="2"/></svg>'; const c = ['', '#ffcf40', '#d5dbe6', '#d9894a'][p], d = ['', '#b9860b', '#8a93a6', '#8a4f22'][p]; return `<svg class="medal" viewBox="0 0 40 40" aria-hidden="true"><path d="M11 6h18v8a9 9 0 0 1-18 0Z" fill="${c}" stroke="${d}" stroke-width="1.5"/><path d="M11 9H6a5 5 0 0 0 6 7M29 9h5a5 5 0 0 1-6 7" fill="none" stroke="${d}" stroke-width="2"/><path d="M17 23h6v6h-6Z" fill="${d}"/><path d="M12 31h16v5H12Z" fill="${c}" stroke="${d}" stroke-width="1.5"/><text x="20" y="17" text-anchor="middle" font-size="9" font-weight="900" font-family="Arial Black, Arial, sans-serif" fill="${d}">${p}</text></svg>`; }
+
+  // ------------------------------------------------------------ paddock
+  function show(id) { ['home', 'race', 'results'].forEach((s) => { $('#' + s).hidden = s !== id; }); document.documentElement.classList.toggle('playing', id === 'race'); window.scrollTo(0, 0); }
+  let toastT = 0;
+  function toast(msg) { const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => { t.hidden = true; }, 2600); }
+  let lastFocus = null;
+  function openSheet(id) { $('#toast').hidden = true; lastFocus = document.activeElement; const s = $(id); s.hidden = false; const f = s.querySelector('.btn.primary:not(:disabled)') || s.querySelector('button'); if (f && id !== 'setupSheet') setTimeout(() => { try { f.focus({ preventScroll: true }); } catch (e) { /* ignore */ } }, 30); }
+  function closeSheet(id) { const s = $(id); if (s.hidden) return; s.hidden = true; if (lastFocus && document.body.contains(lastFocus)) { try { lastFocus.focus({ preventScroll: true }); } catch (e) { /* ignore */ } } }
+  const sheetOpen = () => $$('.sheet').some((s) => !s.hidden);
+  const COIN = '<svg class="coin" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.5" fill="#ffd23f" stroke="#d39b00" stroke-width="1.5"/><path d="M11.2 3.8 6.4 11h3.3l-1 5.2 4.9-7.3H10.3Z" fill="#9a6d00"/></svg>';
+  function renderHome() {
+    const p = points(), rk = rankFor(p), V = vehicle(save.vehicle);
+    $('#srCar').innerHTML = vehicleSVG(V.id, myLook(), { shadow: true });
+    $('#srName').textContent = save.name; $('#srSub').textContent = `${V.name} · #${save.number}`;
+    $('#srChips').innerHTML = `<span class="chip rank-chip">${rk.name}</span><span class="chip">${YEARS.find((y) => y[0] === save.year)[1].replace('Y', 'Year ')}</span>`;
+    $('#wCoins').innerHTML = COIN + fmt(save.coins); $('#wPoints').textContent = p; $('#wRank').textContent = rk.name;
+    $('#wNext').textContent = rk.next ? `${rk.next[0] - p} pts to ${rk.next[1]}` : 'Top licence';
+    $('#wMeter').style.width = (rk.next ? Math.max(4, (p - rk.prev) / (rk.next[0] - rk.prev) * 100) : 100) + '%';
+    $$('.mode').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.mode === save.mode)));
+    let nextMarked = false;
+    $('#tracks').innerHTML = VEN.map((vn, i) => {
+      const open = isOpen(save.mode, i), rec = save.mode === 'tt' ? ttRec(i) : gpRec(i), done = save.mode === 'tt' ? rec.best > 0 : rec.best > 0, next = open && !done && !nextMarked; if (next) nextMarked = true;
+      const res = !open ? ICON_LOCK + '<span>Locked</span>' : save.mode === 'tt' ? (rec.best ? `${rec.medal ? medalSVG(rec.medal).replace('<svg', '<svg class="medal"') : ''}<span>${clock(rec.best)}</span>` : `<span>${next ? 'Race me' : 'Not raced'}</span>`) : (rec.best ? `<span class="trophies" aria-label="Trophies">${CLASSES.map((c) => trophySVG(podium(rec.cls[c.id]) ? rec.cls[c.id] : 0)).join('')}</span><span>Best ${ord(rec.best)}</span>` : `<span>${next ? 'Race me' : 'Not raced'}</span>`);
+      return `<li><button class="track${open ? '' : ' locked'}${next ? ' next' : ''}" type="button" data-i="${i}" aria-label="Track ${i + 1}, ${TRACKS[i].name}. ${vn.skill}. ${open ? '' : 'Locked.'}"><span class="thumb" style="background-image:url(${trackThumb(i, 224, 124)})"><b>${i + 1}</b></span>
+        <span class="t-txt"><span class="t-yr">${vn.years}</span><span class="t-name">${TRACKS[i].name}</span><span class="t-skill">${vn.skill}</span></span><span class="t-end">${res}</span></button></li>`;
+    }).join('');
+    syncSound();
+  }
+  const ICON_LOCK = '<svg class="lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
+  let trackIdx = 0;
+  function renderClasses(i) {
+    const ch = CHAMPS[i], r = gpRec(i); if (!classOpen(i, save.gpClass)) save.gpClass = 'pro';
+    $('#tsMode').innerHTML = `<p class="muted" style="margin-bottom:10px">Six racers over ${setup(i).L} metres. You start 4th on the grid. Finish in the top 3 to open the next track. Track champion: <b style="color:var(--chalk)">★ ${ch.name}</b> in the ${vehicle(ch.vehicle).name}.</p>
+      <div class="classes" role="group" aria-label="Race class">${CLASSES.map((c) => { const open = classOpen(i, c.id), b = r.cls[c.id]; return `<button class="cls" type="button" data-cls="${c.id}" aria-pressed="${save.gpClass === c.id}" ${open ? '' : 'disabled'}><b>${c.name}</b><small>${!open ? 'Pro podium opens it' : b ? 'Best ' + ord(b) : 'Not raced'}</small></button>`; }).join('')}</div>
+      <p class="cls-note">${klass(save.gpClass).note}</p>`;
+  }
+  function openTrack(i) {
+    trackIdx = i; const vn = VEN[i], S = setup(i), open = isOpen(save.mode, i), tt = save.mode === 'tt';
+    $('#tsMeta').textContent = `${tt ? 'Time Trial' : 'Grand Prix'} · Track ${i + 1} · ${vn.years}`; $('#tsName').textContent = TRACKS[i].name;
+    $('#tsArt').style.backgroundImage = `url(${trackThumb(i, 640, 240)})`; $('#tsSkill').textContent = vn.skill; $('#tsBlurb').textContent = TRACKS[i].blurb; $('#tsExample').innerHTML = vn.example;
+    if (tt) { const T = S.targets; $('#tsMode').innerHTML = `<p class="muted" style="margin-bottom:8px">${S.L} metres against the clock. Bronze or better opens the next track. A see-through pace car drives at medal speed. Beat it and a faster one appears.</p><div class="info-grid"><div>Gold<b>${clock(T.gold)}</b></div><div>Silver<b>${clock(T.silver)}</b></div><div>Bronze<b>${clock(T.bronze)}</b></div></div>`;
+      const r = ttRec(i); $('#tsBest').textContent = r.best ? `Your best: ${clock(r.best)}. Your ghost car will race you.` : 'No time set yet.'; }
+    else { renderClasses(i); const r = gpRec(i); $('#tsBest').textContent = r.wins ? `${r.wins} win${r.wins > 1 ? 's' : ''} here so far.` : ''; }
+    $('#tsLock').hidden = open; if (!open) $('#tsLock').textContent = tt ? `Get a bronze medal on ${TRACKS[i - 1].name} to open this track, or change your school year.` : `Finish in the top 3 at ${TRACKS[i - 1].name} to open this track, or change your school year.`;
+    $('#tsGo').disabled = !open; $('#tsGo').textContent = tt ? 'Start the time trial' : 'Start the Grand Prix';
+    $('#tsGarage').textContent = `Driving the ${vehicle(save.vehicle).name}. Change in the Garage`;
+    openSheet('#trackSheet');
+  }
+
+  // ------------------------------------------------------------ garage
+  let gTab = 'vehicle';
+  const statBars = (st) => ['speed', 'boost', 'grip', 'nitro'].map((k) => `<div class="stat"><span>${k}</span><span class="bar">${[1, 2, 3, 4, 5].map((n) => `<i class="${n <= st[k] ? 'on' : ''}"></i>`).join('')}</span></div>`).join('');
+  function vehicleCards(selected) {
+    return VEHICLES.map((v) => { const open = vehicleOpen(v), on = v.id === selected; return `<button class="vcard${on ? ' on' : ''}${open ? '' : ' locked'}" type="button" data-v="${v.id}" aria-pressed="${on}"><span class="vthumb">${vehicleSVG(v.id, myLook(), { w: 200, h: 100 })}</span><b>${v.name}</b><p>${v.blurb}</p><span class="stats">${statBars(v.stats)}</span><span class="tag">${on ? 'Selected' : open ? 'Tap to drive' : `Unlocks at ${v.unlock} trophy points`}</span></button>`; }).join('');
+  }
+  function renderGarage() {
+    $('#gCoins').innerHTML = `${COIN} ${fmt(save.coins)} coins`;
+    $('#gCar').innerHTML = vehicleSVG(save.vehicle, myLook(), { shadow: true });
+    const tabs = [['vehicle', 'Vehicles'], ['paint', 'Paint'], ['livery', 'Livery'], ['trail', 'Trail'], ['number', 'Number']];
+    $('#gTabs').innerHTML = tabs.map(([k, l]) => `<button class="tab" type="button" role="tab" data-tab="${k}" aria-selected="${k === gTab}">${l}</button>`).join('');
+    const P = $('#gPanel'), owned = (cat, id) => save.owned[cat].includes(id), costTag = (x, cat) => save[cat] === x.id ? '<span class="cost">Fitted</span>' : owned(cat, x.id) ? '<span class="cost">Owned</span>' : `<span class="cost${save.coins < x.cost ? ' short' : ''}">${COIN}${x.cost}</span>`;
+    if (gTab === 'vehicle') P.innerHTML = `<div class="vgrid">${vehicleCards(save.vehicle)}</div>`;
+    if (gTab === 'paint') P.innerHTML = `<div class="items">${PAINTS.map((x) => `<button class="item${save.paint === x.id ? ' on' : ''}" type="button" data-cat="paint" data-id="${x.id}"><span class="sw" style="background:${x.metal ? 'linear-gradient(135deg,#fff0b0,#d9a520 45%,#8a6408)' : x.c}"></span>${x.name}${costTag(x, 'paint')}</button>`).join('')}</div>`;
+    if (gTab === 'livery') P.innerHTML = `<div class="items">${LIVERIES.map((x) => `<button class="item${save.livery === x.id ? ' on' : ''}" type="button" data-cat="livery" data-id="${x.id}"><span class="ithumb">${vehicleSVG(save.vehicle, Object.assign(myLook(), { livery: x.id }), { w: 200, h: 100 })}</span>${x.name}${costTag(x, 'livery')}</button>`).join('')}</div>`;
+    if (gTab === 'trail') P.innerHTML = `<div class="items">${TRAILS.map((x) => `<button class="item${save.trail === x.id ? ' on' : ''}" type="button" data-cat="trail" data-id="${x.id}"><span class="sw" style="background:${x.cols ? `linear-gradient(90deg, ${x.cols[0]}, ${x.cols[1]}, ${x.cols[2]})` : 'linear-gradient(90deg,#ff4f6d,#ffd23f,#8dff5a,#28e0ff,#8a4dff)'}"></span>${x.name}${costTag(x, 'trail')}</button>`).join('')}</div>`;
+    if (gTab === 'number') P.innerHTML = `<div class="numpick"><button class="icon-btn" type="button" data-num="-1" aria-label="Lower number">−</button><output id="numOut">${save.number}</output><button class="icon-btn" type="button" data-num="1" aria-label="Higher number">+</button></div><p class="muted" style="text-align:center">Pick any number from 1 to 99. It goes on every vehicle you drive.</p>`;
+  }
+  function pickItem(cat, id) {
+    const list = { paint: PAINTS, livery: LIVERIES, trail: TRAILS }[cat], x = list.find((y) => y.id === id);
+    if (!save.owned[cat].includes(id)) { if (save.coins < x.cost) { toast(`You need ${x.cost - save.coins} more coins for ${x.name}.`); return; } save.coins -= x.cost; save.owned[cat].push(id); Sound.boost(1); toast(`Bought: ${x.name}.`); }
+    save[cat] = id; persist(); renderGarage(); renderHome();
+  }
+  function pickVehicle(id, inSetup) {
+    const v = vehicle(id); if (!vehicleOpen(v)) { toast(`The ${v.name} unlocks at ${v.unlock} trophy points. You have ${points()}.`); return; }
+    save.vehicle = id; if (!inSetup) persist(); if (inSetup) { $('#suVGrid').innerHTML = vehicleCards(save.vehicle); } else { renderGarage(); renderHome(); }
+  }
+
+  // ------------------------------------------------------------ driver setup
+  let setupMode = 'first', resetArm = 0;
+  function openSetup(mode) {
+    setupMode = mode; resetArm = 0;
+    $('#suTitle').textContent = mode === 'first' ? 'Sign up to race' : 'Driver settings'; $('#suMeta').textContent = mode === 'first' ? 'Welcome to the paddock' : save.name;
+    $('#suGo').textContent = mode === 'first' ? 'Head to the paddock' : 'Save'; $('#suClose').hidden = mode === 'first'; $('#resetBtn').hidden = mode === 'first'; $('#resetBtn').textContent = 'Wipe all progress';
+    $('#suVehicles').hidden = mode !== 'first'; $('#nameInput').value = save.name || randomName();
+    $('#suVGrid').innerHTML = vehicleCards(save.vehicle);
+    $('#yearGrid').innerHTML = YEARS.map(([y, l]) => `<label class="choice"><input type="radio" name="year" value="${y}" id="year-${y}" ${y === save.year ? 'checked' : ''}><span>${l}</span></label>`).join('');
+    openSheet('#setupSheet');
+  }
+  function submitSetup(e) {
+    e.preventDefault(); Sound.unlock();
+    save.name = $('#nameInput').value.trim().replace(/\s+/g, ' ').slice(0, 24) || randomName();
+    save.year = Number(($('input[name="year"]:checked') || {}).value || 6);
+    const first = !save.started; save.started = true; persist(); closeSheet('#setupSheet'); renderHome();
+    toast(first ? `${save.name} is signed up. Pick a track!` : 'Saved.');
+  }
+  function resetAll() {
+    if (Date.now() - resetArm > 4000) { resetArm = Date.now(); $('#resetBtn').textContent = 'Tap again to wipe coins, medals and vehicles'; return; }
+    const snd = save.sound; save = blank(); save.sound = snd; persist(); closeSheet('#setupSheet'); renderHome(); setTimeout(() => openSetup('first'), 60);
+  }
+  function syncSound() { const b = $('#soundBtn'); b.innerHTML = save.sound ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 9a4 4 0 0 1 0 6M18.6 6.4a7.6 7.6 0 0 1 0 11.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>' : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="m16.5 9.5 5 5m0-5-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'; b.setAttribute('aria-label', save.sound ? 'Turn sound off' : 'Turn sound on'); }
+  function pause(text) { if (!run || (run.state !== 'race' && run.state !== 'count')) return; paused = true; $('#psText').textContent = text || 'The clock is stopped.'; openSheet('#pauseSheet'); Sound.engine(0, false, true); }
+  function toHome() { cancelAnimationFrame(raf); Sound.engineStop(); run = null; paused = false; $$('.sheet').forEach((s) => { s.hidden = true; }); show('home'); renderHome(); }
+
+  function wire() {
+    $('#tracks').addEventListener('click', (e) => { const b = e.target.closest('.track'); if (b) openTrack(+b.dataset.i); });
+    $$('.mode').forEach((b) => b.addEventListener('click', () => { save.mode = b.dataset.mode; persist(); renderHome(); }));
+    $('#tsGo').addEventListener('click', () => startRace(trackIdx, save.mode));
+    $('#tsMode').addEventListener('click', (e) => { const b = e.target.closest('.cls'); if (!b || b.disabled) return; save.gpClass = b.dataset.cls; persist(); renderClasses(trackIdx); });
+    $('#tsGarage').addEventListener('click', () => { closeSheet('#trackSheet'); gTab = 'vehicle'; renderGarage(); openSheet('#garageSheet'); });
+    $('#garageBtn').addEventListener('click', () => { renderGarage(); openSheet('#garageSheet'); });
+    $('#gTabs').addEventListener('click', (e) => { const t = e.target.closest('.tab'); if (t) { gTab = t.dataset.tab; renderGarage(); } });
+    $('#gPanel').addEventListener('click', (e) => {
+      const v = e.target.closest('.vcard'); if (v) { pickVehicle(v.dataset.v, false); return; }
+      const it = e.target.closest('.item'); if (it) { pickItem(it.dataset.cat, it.dataset.id); return; }
+      const n = e.target.closest('[data-num]'); if (n) { save.number = ((save.number - 1 + Number(n.dataset.num)) % 99 + 99) % 99 + 1; persist(); $('#numOut').textContent = save.number; $('#gCar').innerHTML = vehicleSVG(save.vehicle, myLook(), { shadow: true }); renderHome(); }
+    });
+    $('#suVGrid').addEventListener('click', (e) => { const v = e.target.closest('.vcard'); if (v) pickVehicle(v.dataset.v, true); });
+    $('#settingsBtn').addEventListener('click', () => openSetup('settings'));
+    $('#soundBtn').addEventListener('click', () => { save.sound = !save.sound; persist(); syncSound(); if (save.sound) Sound.unlock(); });
+    $$('[data-close]').forEach((b) => b.addEventListener('click', () => closeSheet('#' + b.closest('.sheet').id)));
+    $$('.sheet').forEach((s) => s.addEventListener('click', (e) => { if (e.target === s && ['trackSheet', 'garageSheet'].includes(s.id)) closeSheet('#' + s.id); }));
+    $('#setupForm').addEventListener('submit', submitSetup);
+    $('#diceBtn').addEventListener('click', () => { $('#nameInput').value = randomName(); });
+    $('#resetBtn').addEventListener('click', resetAll);
+    $('#keys').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b && !b.disabled) press(b.dataset.k); });
+    $('#nitroBtn').addEventListener('click', () => press('nitro'));
+    $('#pauseBtn').addEventListener('click', () => pause());
+    $('#resumeBtn').addEventListener('click', () => { closeSheet('#pauseSheet'); paused = false; lastT = 0; });
+    $('#restartBtn').addEventListener('click', () => { const r = run; Sound.engineStop(); startRace(r.vi, r.mode); });
+    $('#quitBtn').addEventListener('click', toHome);
+    $('#nextBtn').addEventListener('click', () => startRace(run.vi + 1, run.mode));
+    $('#againBtn').addEventListener('click', () => startRace(run.vi, run.mode));
+    $('#homeBtn').addEventListener('click', toHome);
+    document.addEventListener('visibilitychange', () => { if (document.hidden && run && !paused) pause('Paused while you were away.'); });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') { const open = $$('.sheet').filter((s) => !s.hidden && !(s.id === 'setupSheet' && setupMode === 'first')); if (open.length) { const s = open[open.length - 1]; if (s.id === 'pauseSheet') $('#resumeBtn').click(); else closeSheet('#' + s.id); } else if (run && !$('#race').hidden) pause(); return; }
+      if (!run || $('#race').hidden || sheetOpen() || /INPUT/.test(e.target.tagName) || e.metaKey || e.ctrlKey || e.altKey) return;
+      let k = null;
+      if (/^[0-9]$/.test(e.key)) k = e.key; else if (e.key === '-' || e.key === 'Subtract') k = 'neg'; else if (e.key === 'Backspace' || e.key === 'Delete') k = 'back'; else if (e.key === 'Enter') k = 'enter'; else if (e.key === ' ' || e.key === 'n' || e.key === 'N') k = 'nitro';
+      if (!k) return; e.preventDefault(); press(k);
+      const btn = $(`#keys [data-k="${k}"]`); if (btn) { btn.classList.add('down'); setTimeout(() => btn.classList.remove('down'), 110); }
+    });
+    let rz = 0; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (run && !$('#race').hidden) { sizeCanvas(); fitMain(); } }, 120); });
+  }
+
+  let booted = false;
+  function start() {
+    if (booted) return; booted = true; load(); wire();
+    if (!save.name) save.name = randomName();
+    renderHome(); if (!save.started) openSetup('first');
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (!run) renderHome(); });
+    if (window.__SFS_TEST__) window.__sfs = { get run() { return run; }, get save() { return save; }, press, startRace, answer: () => String(run.q.answer), setup, vehicleSVG, renderHome, bench: (n) => { const t0 = performance.now(); for (let k = 0; k < n; k++) render(k * 0.016, 0.016); return (performance.now() - t0) / n; } };
+  }
+  const hot = window.claude && window.claude.hot;
+  try { if (hot && typeof hot.snapshot === 'function') hot.snapshot(() => ({})); } catch (e) { /* ignore */ }
+  try { if (hot && typeof hot.ready === 'function') hot.ready(start); else start(); } catch (e) { start(); }
+  setTimeout(start, 700);
+})();
+</script>
+
+</body>
+</html>
